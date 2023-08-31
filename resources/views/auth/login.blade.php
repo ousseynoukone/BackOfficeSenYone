@@ -43,6 +43,7 @@
             <x-primary-button class="ml-3">
                 {{ __('Se connecter') }}
             </x-primary-button>
+            
         </div>
     </form>
 </x-guest-layout>

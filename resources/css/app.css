@@ -1,3 +1,6 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@import url("/public/assets/css/bootstrap.min.css");
+@import url("/public/assets/css/styles.min.css");
