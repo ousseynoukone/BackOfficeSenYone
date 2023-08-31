@@ -41,9 +41,10 @@
 </div>
 </div>
 
-<div class="col-7">
+<div class="col-7" style="  z-index: 0;
+">
     <p class='text-center h5'>Itinéraire du bus <span class="hightlight">{{$ligne->numero}}</span> </p>
-<div id='map' class="rounded"></div>
+<div id='map' class="rounded" ></div>
 </div>
 
 
