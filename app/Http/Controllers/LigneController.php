@@ -58,7 +58,8 @@ class LigneController extends Controller
     
         // Save the Ligne instance to the database
         $ligne->save();
-    
+        toastr()->success('Enrégistrement de la ligne effectué avec sucess');
+
         return back()->with('message', 'Item stored successfully');
     }
     
@@ -73,33 +74,85 @@ class LigneController extends Controller
 
     public function show(Ligne $ligne)
     {  
-        $content= Storage::get($ligne->itineraire);
 
+             
+        $content1 =  Storage::get($ligne->itineraire);
+        $content1 = str_replace("\n", '', $content1);
+$content1 = str_replace("\t", '', $content1);
 
-        $initialMarkers = [
-            [
-                'position' => [
-                    'lat' => 28.625485,
-                    'lng' => 79.821091
-                ],
-                'draggable' => true
-            ],
-            [
-                'position' => [
-                    'lat' => 28.625293,
-                    'lng' => 79.817926
-                ],
-                'draggable' => false
-            ],
-            [
-                'position' => [
-                    'lat' => 28.625182,
-                    'lng' => 79.81464
-                ],
-                'draggable' => true
-            ]
-        ];
-        return view('pages.lignes.ligne-show', compact('ligne','initialMarkers','content'));
+// Define a regular expression pattern to match the <LineString> element
+$pattern = '/<LineString>.*?<\/LineString>/s';
+
+// Use preg_match to find the first match in the content
+if (preg_match($pattern, $content1, $matches)) {
+    // $matches[0] now contains the <LineString> element and its contents
+    $lineString = $matches[0];
+
+    // You can then work with the $lineString as needed
+    // For example, to remove any remaining line breaks and tabs:
+    $lineString = str_replace(["\n", "\t"], '', $lineString);
+
+    // Now $lineString contains the cleaned <LineString> element
+}
+$content = $lineString;
+
+// Extract coordinates from KML data
+preg_match_all('/<coordinates>(.*?)<\/coordinates>/s', $content, $matches);
+$coordinates = $matches[1][0];
+$tabStartAndEndCordinate = [];
+// Split the coordinates into individual pairs
+$coordinatePairs = explode(' ', $coordinates);
+$coordinatePairs = array_filter($coordinatePairs);
+
+// Create a GeoJSON feature for the LineString
+$feature = [
+    'type' => 'Feature',
+    'properties' => ['Name' => 'Ligne 1 AFTU'],
+    'geometry' => [
+        'type' => 'LineString',
+        'coordinates' => [],
+    ],
+];
+// dd($coordinatePairs);
+// Iterate through the coordinate pairs and convert them to GeoJSON format
+foreach ($coordinatePairs as $index=> $pair) {
+    $coordinates = explode(',', $pair);
+    $lon = (float)$coordinates[0];
+    $lat = (float)$coordinates[1];
+    if($index==0){
+        $tabStartAndEndCordinate[0] =$lat; 
+        $tabStartAndEndCordinate[1] =$lon; 
+    }
+    
+    if($index==count($coordinatePairs)-1){
+        $tabStartAndEndCordinate[2] =$lat; 
+        $tabStartAndEndCordinate[3] =$lon; 
+    }
+    $feature['geometry']['coordinates'][] = [$lon, $lat];
+  
+
+}
+
+// Create a GeoJSON object
+$geojson = [
+    'type' => 'FeatureCollection',
+    'name' => 'Ligne 1 AFTU',
+    'crs' => [
+        'type' => 'name',
+        'properties' => ['name' => 'urn:ogc:def:crs:OGC:1.3:CRS84'],
+    ],
+    'features' => [$feature],
+];
+
+// Convert the GeoJSON to JSON and output it
+$jsonGeoJSON = json_encode($geojson, JSON_PRETTY_PRINT);
+$content=$jsonGeoJSON;
+        // dd( $lineString);
+
+    // Remove \t and \n characters from the KML content
+    // dd ( stripcslashes( $content2));
+
+        return view('pages.lignes.ligne-show', compact('ligne','content','tabStartAndEndCordinate'));
     }
 
     /**
@@ -128,6 +181,7 @@ class LigneController extends Controller
         ]);
 
         $ligne->update($validated);
+        toastr()->success('Mise a jour effectué avec sucess');
 
         return back()->with('message', 'item updated successfully');
     }
@@ -141,7 +195,34 @@ class LigneController extends Controller
     public function destroy(Ligne $ligne)
     {
         $ligne->delete();
+        toastr()->warning('Suppression effectué avec sucess');
 
         return back()->with('message', 'item deleted successfully');
     }
+
+
+
+    public function getFile($filename)
+{
+    // Assuming $filename is the name of the stored file
+    $filePath = 'kml_files/' . $filename;
+
+    // Check if the file exists
+    if (Storage::exists($filePath)) {
+        // Get the file's content
+        $fileContent = Storage::get($filePath);
+
+        // Define the response headers
+        $headers = [
+            'Content-Type' => 'application/octet-stream', // Adjust the content type as needed
+            'Content-Disposition' => 'inline; filename="' . $filename . '"', // Optionally, set the desired filename
+        ];
+
+        // Return the file as a response
+        return response($fileContent, 200, $headers);
+    }
+
+    // File not found, return a 404 response or handle the error as needed
+    return response('File not found', 404);
+}
 }
