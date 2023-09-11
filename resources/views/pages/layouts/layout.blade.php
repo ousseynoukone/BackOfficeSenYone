@@ -36,15 +36,15 @@
               <i class="ti ti-dots nav-small-cap-icon fs-4"></i>
               <span class="hide-menu">Accueil</span>
             </li>
-            <li class="sidebar-item">
+            <li class="sidebar-item " style="background-color: rgba(255, 0, 0, 0.164) ; border-radius : 10px;">
               <a class="sidebar-link" href="{{route('dashboard')}}" aria-expanded="false">
                 <span>
                   <i class="ti ti-layout-dashboard"></i>
                 </span>
-                <span class="hide-menu">Dashboard</span>
+                <span class="hide-menu">Les lignes</span>
               </a>
             </li>
-            <li class="nav-small-cap">
+            {{-- <li class="nav-small-cap">
               <i class="ti ti-dots nav-small-cap-icon fs-4"></i>
               <span class="hide-menu">UI COMPONENTS</span>
             </li>
@@ -139,7 +139,7 @@
                 <img src="../assets/images/backgrounds/rocket.png" alt="" class="img-fluid">
               </div>
             </div>
-          </div>
+          </div> --}}
         </nav>
         <!-- End Sidebar navigation -->
       </div>
