@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('lignes', function (Blueprint $table) {
             $table->id();
             $table->string('itineraire');
-            $table->string('check_point');
+            $table->string('check_point', 1000);
             $table->integer('numero');
             
             $table->timestamps();
