@@ -28,22 +28,44 @@
           <div class="close-btn d-xl-none d-block sidebartoggler cursor-pointer" id="sidebarCollapse">
             <i class="ti ti-x fs-8"></i>
           </div>
+          
         </div>
         <!-- Sidebar navigation-->
         <nav class="sidebar-nav scroll-sidebar" data-simplebar="">
           <ul id="sidebarnav">
+            <i class="ti ti-user">{{Auth::user()->role}}</i>
+
+
             <li class="nav-small-cap">
+              
               <i class="ti ti-dots nav-small-cap-icon fs-4"></i>
-              <span class="hide-menu">Accueil</span>
+              <span class="hide-menu">Tableau de bord</span>
+
             </li>
-            <li class="sidebar-item " style="background-color: rgba(255, 0, 0, 0.164) ; border-radius : 10px;">
-              <a class="sidebar-link" href="{{route('dashboard')}}" aria-expanded="false">
-                <span>
-                  <i class="ti ti-layout-dashboard"></i>
-                </span>
-                <span class="hide-menu">Les lignes</span>
+
+
+            <li class="sidebar-item" style="border-radius: 10px;">
+              <a class="sidebar-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('ligne.index') }}" aria-expanded="false">
+                  <span>
+                      <i class="ti ti-layout-dashboard"></i>
+                  </span>
+                  <span class="hide-menu">Les lignes</span>
               </a>
-            </li>
+          </li>
+          
+          <li class="sidebar-item" style="border-radius: 10px;">
+              @if (Auth::user()->role == "Super Administrateur")
+                  <a class="sidebar-link {{ request()->routeIs('admins.index') ? 'active' : '' }}" href="{{ route('admins.index') }}" aria-expanded="false">
+                      <span>
+                          <i class="ti ti-user-plus"></i>
+                      </span>
+                      <span class="hide-menu">Les administrateurs</span>
+                  </a>
+              @endif
+          </li>
+          
+          
+
             {{-- <li class="nav-small-cap">
               <i class="ti ti-dots nav-small-cap-icon fs-4"></i>
               <span class="hide-menu">UI COMPONENTS</span>
@@ -162,7 +184,8 @@
           <div class="navbar-collapse justify-content-end px-0" id="navbarNav">
             <ul class="navbar-nav flex-row ms-auto align-items-center justify-content-end">
                 <div class="btn" href="javascript:void(0)" id="drop2" data-bs-toggle="dropdown">{{ Auth::user()->name }} <svg xmlns="http://www.w3.org/2000/svg" height="1em" viewBox="0 0 512 512"><!--! Font Awesome Free 6.4.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. --><path d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"/></svg></div>
-              <li class="nav-item dropdown">
+
+                <li class="nav-item dropdown">
 
                 <a class="nav-link nav-icon-hover"  
                   aria-expanded="false">
@@ -219,9 +242,7 @@
   <script src="../assets/js/sidebarmenu.js"></script>
   <script src="{{asset('assets/js/app.min.js')}}"></script>
   <script src="{{asset('assets/js/bootstrap.min.js')}}"></script>
-  <script src="../assets/libs/apexcharts/dist/apexcharts.min.js"></script>
-  <script src="../assets/libs/simplebar/dist/simplebar.js"></script>
-  <script src="../assets/js/dashboard.js"></script>
+
  </body>
 
 </html>

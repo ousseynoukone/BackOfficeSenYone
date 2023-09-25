@@ -1,7 +1,7 @@
 @extends('pages.layouts.layout')
 @section('content')
 
-<button type="button" class="col-3 mb-3  btn btn-primary" data-bs-toggle="modal" data-bs-target="#addLigne">
+<button type="button" class="col-3 mb-3  btn btn-primary" id="triggerAddAdminModal" data-bs-toggle="modal" data-bs-target="#addLigne">
   Ajouter une ligne
 </button>
 
@@ -54,7 +54,7 @@
                             <td class="border-bottom-0">
                               <a href="{{ route('ligne.show', $ligne) }}" class="btn btn-primary">Détail</a>
                               <a href="{{ route('ligne.edit', $ligne->id) }}" class="btn btn-primary">Modifier</a>
-                              <form action="{{ route('ligne.destroy', $ligne->id) }}" method="POST" style="display: inline-block">
+                              <form  class="formDeleteLigne formDeleteLigne{{$ligne->id}}" action="{{ route('ligne.destroy', $ligne->id) }}" method="POST" style="display: inline-block">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-danger">Supprimer</button>
@@ -123,5 +123,82 @@
 </div>
 
 
+<!-- Confirmation Modal -->
+<button hidden type="button" id="triggerConfirmationModal" class="col-3 mb-3 btn btn-primary" data-bs-toggle="modal" data-bs-target="#confirmationModal">
+    
+</button>
+
+<div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+
+  <div class="modal-dialog" role="document">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h5 class="modal-title" id="confirmationModalLabel">Confirmation</h5>
+              <button type="button" id="" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+
+          </div>
+          <div class="modal-body">
+              Êtes-vous sûr de vouloir supprimer cette ligne ?
+          </div>
+          <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+              <button type="button" id="confirmDeleteBtn" class="btn btn-danger">Supprimer</button>
+          </div>
+      </div>
+  </div>
+</div>
+<script>
+  // Function to open the error modal
+  function openErrorModal() {
+    var triggerButton = document.getElementById("triggerAddAdminModal");
+    if (triggerButton) {
+      triggerButton.click();
+    }
+  }
+
+  // Check for form validation errors (you can customize this part)
+  function checkForErrors() {
+    // Replace this with your actual form validation logic
+    // For example, check if there are error messages on the page
+    var hasErrors = document.getElementsByClassName('invalid-feedback').length > 0;
+    if (hasErrors) {
+      openErrorModal();
+    }
+  }
+
+  // Call the function to check for errors when the page loads
+  window.addEventListener('DOMContentLoaded', function() {
+    checkForErrors();
+  });
+</script>
+
+<script>
+
+  document.addEventListener("DOMContentLoaded", function() {
+          let idLigne ;
+      // Add a submit event listener to each form with the class "formDeleteLigne"
+      const deleteForms = document.querySelectorAll('.formDeleteLigne');
+      deleteForms.forEach(function (form) {
+          
+          form.addEventListener('submit', function(event) {
+              event.preventDefault(); // Prevent the default form submission
+
+              // Use a regular expression to extract the last digit
+               idLigne = event.target.action.match(/\d+$/)[0];
+            console.log("this")
+              // Use Bootstrap's modal for the confirmation dialog
+              document.getElementById("triggerConfirmationModal").click();
+              console.log("that")
+
+          });
+      });
+      // Add a click event listener to the confirmation button
+      document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+          // Submit the form when confirmed
+          const form = document.querySelector('.formDeleteLigne'+idLigne);
+          form.submit();
+      });
+  });
+</script>
 
 @endsection

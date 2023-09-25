@@ -6,8 +6,7 @@
 <div class="card-body p-4">
     <h5 class="card-title fw-semibold mb-4">Modification des informations de la ligne</h5>
 <form method="POST" action="{{ route('ligne.update', $ligne->id) }}">
-    @csrf
-    @method('PUT')
+
 
     <div class="mb-3">
         <label for="itineraire" class="form-label">Remplacer le ficher de l'itinéraire (KML)</label>

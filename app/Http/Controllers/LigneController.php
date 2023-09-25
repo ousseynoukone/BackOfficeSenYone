@@ -41,7 +41,7 @@ class LigneController extends Controller
         // Validate the request
         $validated = $this->validate($request, [
             "itineraire" => "required|max:2048", 
-            "numero" => "required|numeric|min:1",
+            "numero" => "required|unique:lignes,numero|numeric|min:1",
             "check_point" => "required|string"
         ]);
         // Handle file upload
@@ -58,7 +58,7 @@ class LigneController extends Controller
     
         // Save the Ligne instance to the database
         $ligne->save();
-        toastr()->success('Enrégistrement de la ligne effectué avec sucess');
+        session()->flash('success', 'Enrégistrement de la ligne effectué avec sucess');
 
         return back()->with('message', 'Item stored successfully');
     }
@@ -195,6 +195,7 @@ $content=$jsonGeoJSON;
     public function destroy(Ligne $ligne)
     {
         $ligne->delete();
+        
         toastr()->warning('Suppression effectué avec sucess');
 
         return back()->with('message', 'item deleted successfully');

@@ -7,3 +7,11 @@
     width: '100%';
     height: 87.4%;
 }
+
+.active{
+    color: rgb(0, 177, 118);
+}
+
+.notActive{
+    color: crimson;
+}
