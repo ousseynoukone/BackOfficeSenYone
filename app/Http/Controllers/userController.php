@@ -14,8 +14,8 @@ class userController extends Controller
      */
     public function index()
     {
-        $allUser= User::where('role','=','Administrateur')->get();
-       return view('pages.administrateurs.administrateur',compact("allUser")) ;
+        $Admins= User::where('role','=','Administrateur')->get();
+       return view('pages.administrateurs.administrateur',compact("Admins")) ;
     
     }
 
@@ -24,7 +24,7 @@ class userController extends Controller
      */
     public function create()
     {
-        //
+
     }
 
     /**
@@ -50,6 +50,16 @@ class userController extends Controller
     
         return redirect()->route("admins.index");
     }
+
+
+
+  public function reset(Request $request){
+    $user = User::find($request['id']);
+    $user->password=bcrypt("passer123");
+    $user ->save();
+    session()->flash("success","Mots de passe réinitialisé ! ");
+    return redirect()->route("admins.index");
+  }
     
 
     /**
@@ -65,7 +75,8 @@ class userController extends Controller
      */
     public function edit(string $id)
     {
-        //
+
+
     }
 
     /**

@@ -52,6 +52,14 @@
                   <span class="hide-menu">Les lignes</span>
               </a>
           </li>
+          <li class="sidebar-item" style="border-radius: 10px;">
+            <a class="sidebar-link {{ request()->routeIs('usagers.index') ? 'active' : '' }}" href="{{ route('usagers.index') }}" aria-expanded="false">
+                <span>
+                    <i class="ti ti-user"></i>
+                </span>
+                <span class="hide-menu">Les Usagers</span>
+            </a>
+        </li>
           
           <li class="sidebar-item" style="border-radius: 10px;">
               @if (Auth::user()->role == "Super Administrateur")

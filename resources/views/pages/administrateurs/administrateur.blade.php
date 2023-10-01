@@ -9,7 +9,7 @@
   <div class="col-lg-12 ml-5 d-flex align-items-stretch">
     <div class="card w-100">
       <div class="card-body p-4">
-        <h5 class="card-title fw-semibold mb-4">Liste des administrateurs</h5>
+        <h5 class="card-title fw-semibold mb-4">Liste des Administrateurs</h5>
         <div class="table-responsive">
           <table class="table text-nowrap mb-0 align-middle">
             <thead class="text-dark fs-4">
@@ -23,9 +23,7 @@
                 <th class="border-bottom-0">
                   <h6 class="fw-semibold mb-0">Email</h6>
                 </th>
-                <th class="border-bottom-0">
-                  <h6 class="fw-semibold mb-0">Rôle</h6>
-                </th>
+     
                 <th class="border-bottom-0">
                     <h6 class="fw-semibold mb-0">État du compte</h6>
                   </th>
@@ -35,7 +33,7 @@
               </tr>
             </thead>
             <tbody>
-              @foreach ($allUser as $user)
+              @foreach ($Admins as $user)
               <tr>
                 <td class="border-bottom-0"><h6 class="fw-semibold mb-0">{{ $user->id }}</h6></td>
                 <td class="border-bottom-0">
@@ -44,9 +42,7 @@
                 <td class="border-bottom-0">
                   <h6 class="fw-semibold mb-1">{{ $user->email }}</h6>
                 </td>
-                <td class="border-bottom-0">
-                  <h6 class="fw-semibold mb-1">{{ $user->role }}</h6>
-                </td>
+    
                 <td class="border-bottom-0">
                     <h6 class="fw-semibold mb-1   {{ $user->status == false ? 'active' : 'notActive' }}">
                         @if ($user->status == false)
@@ -69,12 +65,19 @@
 
                         @endif
                   </form>
+           
 
                   <form class="formDeleteAdmin formDeleteAdmin{{$user->id}}" action="{{ route('admins.destroy', $user->id) }}" method="POST" style="display: inline-block">
                     @csrf
                     @method('DELETE')
                     <button type="submit" id="deleteBtn"  class="btn btn-sm btn-danger mt-1">Supprimer</button>
                 </form>
+                <form method="POST" class="formResetAdmin formResetAdmin{{$user->id}}" action="{{ route('admins.reset', $user->id) }}">
+                  @csrf
+
+                  <button type="submit" class="btn btn-danger btn-sm mt-1">Réinitialiser le mots de passe</button>
+
+               </form>
                 </td>
               </tr>
               @endforeach
@@ -189,6 +192,31 @@
     </div>
 </div>
 
+<!-- Confirmation reset password Modal -->
+<button hidden type="button" id="triggerConfirmationResetModal" class="col-3 mb-3 btn btn-primary" data-bs-toggle="modal" data-bs-target="#confirmationResetModal">
+    
+</button>
+
+<div class="modal fade" id="confirmationResetModal" tabindex="-1" aria-labelledby="" aria-hidden="true">
+
+  <div class="modal-dialog" role="document">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h5 class="modal-title" id="confirmationModalLabel">Confirmation</h5>
+              <button type="button" id="" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+
+          </div>
+          <div class="modal-body">
+              Êtes-vous sûr de vouloir réinitialiser le mots de passe de  cet Administrateur ?
+          </div>
+          <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Non</button>
+              <button type="button" id="confirmResetDeleteBtn" class="btn btn-danger">Oui</button>
+          </div>
+      </div>
+  </div>
+</div>
+
 
 <script>
     // Function to open the error modal
@@ -219,6 +247,7 @@
 
 
 
+{{-- For confirming deletion --}}
 
 
 <script>
@@ -270,6 +299,40 @@
     });
 </script>
   
+
+
+{{-- For confirming reseting --}}
+<script>
+    
+    document.addEventListener("DOMContentLoaded", function() {
+            let idUser ;
+        // Add a submit event listener to each form with the class "formDeleteAdmin"
+        const deleteForms = document.querySelectorAll('.formResetAdmin');
+        deleteForms.forEach(function (form) {
+            
+            form.addEventListener('submit', function(event) {
+                event.preventDefault(); // Prevent the default form submission
+
+                // Use a regular expression to extract the last digit
+                 idUser = event.target.action.match(/\d+$/)[0];
+
+                // Use Bootstrap's modal for the confirmation dialog
+                document.getElementById("triggerConfirmationResetModal").click();
+            });
+        });
+        // Add a click event listener to the confirmation button
+        document.getElementById('confirmResetDeleteBtn').addEventListener('click', function() {
+            // Submit the form when confirmed
+            const form = document.querySelector('.formResetAdmin'+idUser);
+            form.submit();
+        });
+    });
+</script>
+
+
+
+
+
 <script>
 
 

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\LigneController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\usagerController;
 use App\Http\Controllers\userController;
 use Illuminate\Support\Facades\Route;
 
@@ -30,6 +31,8 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::resource('ligne',LigneController::class);
     Route::resource('admins',userController::class);
+    Route::resource('usagers',usagerController::class);
+    Route::post('/admins-reset/{id}',[userController::class, 'reset'])->name('admins.reset');
 });
 
 require __DIR__.'/auth.php';
