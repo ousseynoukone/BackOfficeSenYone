@@ -27,6 +27,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::post('/login', [UserAuthApiController::class, 'login'])->name('login');
 Route::post('/reset', [UserAuthApiController::class, 'reset'])->name('reset');
 Route::post('/reset-mail-sender', [UserAuthApiController::class, 'resetEmail'])->name('reset-mail-sender');
+Route::post('/active-account-mail-sender', [UserAuthApiController::class, 'sendActiveAccountMail'])->name('active-account-mail-sender');
+Route::post('/active-account', [UserAuthApiController::class, 'activeAccount'])->name('active-account');
 
 
 Route::get('/logout', [UserAuthApiController::class, 'logout'])->name('logout');

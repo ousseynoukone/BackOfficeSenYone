@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 use App\Mail\mailSender;
 use Illuminate\Support\Facades\Mail;
 use App\Http\Controllers\Controller;
+use App\Mail\mailSenderActiveAccount;
 use App\Models\User;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
@@ -66,7 +67,7 @@ class UserAuthApiController extends Controller
         
         if($user){
             $code = mt_rand(1000, 9999);
-            $user->reset_code = $code;
+            $user->code = $code;
             $user->save();
             Mail::to($email)->send(new mailSender($code));
         } else {
@@ -80,15 +81,27 @@ class UserAuthApiController extends Controller
     {  
         $password = bcrypt($request['password']);
         $code = $request['code'];
+
+                // Validate the incoming request data
+        $validator = Validator::make($request->all(), [
+                'code' => ['required', 'string'],
+            'password' => ['required', Rules\Password::defaults()],
+        ]);
+
+        // Check if validation fails
+        if ($validator->fails()) {
+            // Return a JSON response with validation errors and a 422 status code (Unprocessable Entity)
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
     
-        $user = User::where('reset_code',$code)->first();
+        $user = User::where('code',$code)->first();
         
         if($user){
-            $user->reset_code ="";
+            $user->code ="";
             $user->password = $password;
             $user->save();
         } else {
-            return response("Code   expiré ou incorrecte ! ", 401);
+            return response("Code expiré ou incorrecte ! ", 401);
         }
     
         return response("mots de passe modifié  !", 201);
@@ -124,18 +137,69 @@ class UserAuthApiController extends Controller
             // event(new Registered($user));
     
             // Log in the user and generate an access token
-            $user->role="Usager";
-            $token = $user->createToken('auth-token')->accessToken;
-    
+            $user->status = true;
+            $user->save();
+            $this->sendActiveAccountMail($user->email);
+        
             // Return a successful response with the token
-            return response()->json(['token' => $token ,'username'=> $user->name ,'email'=> $user->email]);
+            return response("Compte crée",200);
         } catch (\Exception $e) {
             // Handle the exception and return an error response
             return response()->json(['error' => 'Registration failed. Please try again.'], 500);
         }
     }
+
+
+    public function sendActiveAccountMail(string $email){
+        
     
+        $user = User::where('email', $email)->first();
+        
+        if($user){
+            $code = mt_rand(100000, 999999);
+            $user->code = $code;
+            $user->save();
+            Mail::to($email)->send(new mailSenderActiveAccount($code,$user->name));
+        } else {
+            return response("Ce compte n'existe pas !", 404);
+        }
+    
+        return response("email envoyé !", 200);
+
+    }
+    
+    
+    public function activeAccount(Request $request){
+        $code = $request['code'];
+    
+        $user = User::where('code',$code)->first();
+
+        // Validate the incoming request data
+        $validator = Validator::make($request->all(), [
+        'code' => ['required', 'string'],]);
+            
+                    // Check if validation fails
+        if ($validator->fails()) {
+        // Return a JSON response with validation errors and a 422 status code (Unprocessable Entity)
+        return response()->json(['errors' => $validator->errors()], 422);
+        }
+                
+        
+        if($user){
+            $user->code ="";
+            $user->status = false;
+            $user->save();
+        } else {
+            return response("Code expiré ou incorrecte ! ", 401);
+        }
+
+        $token = $user->createToken('auth-token')->accessToken;
+    
+        // Return a successful response with the token
+        return response()->json(['token' => $token ,'username'=> $user->name ,'email'=> $user->email]);
     
 
+    }
+    
     
 }

@@ -44,7 +44,7 @@
         <h1>Réinitialisation de mot de passe</h1>
         <p>Vous avez demandé la réinitialisation de votre mot de passe. Voici votre code de réinitialisation :</p>
         <h2 style="font-size: 36px;">{{$code}}</h2>
-        <p style="color:crimson ; font-weight:600;">Ce code est a usage unique.</p>
+        <p style="color:crimson ; font-weight:600;">Ce code est  à usage unique.</p>
 
         <p>Si vous n'avez pas demandé de réinitialisation de mot de passe, veuillez ignorer cet e-mail.</p>
         <p>Merci de faire confiance à notre service.</p>

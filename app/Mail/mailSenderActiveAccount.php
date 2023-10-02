@@ -9,14 +9,14 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class mailSender extends Mailable
+class mailSenderActiveAccount extends Mailable
 {
     use Queueable, SerializesModels;
 
     /**
      * Create a new message instance.
      */
-    public function __construct( private string $code)
+    public function __construct(private string $code , private string $name)
     {
         //
     }
@@ -27,7 +27,7 @@ class mailSender extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: "Réinitialisation de mot de passe",
+            subject: 'Activation de votre compte',
         );
     }
 
@@ -37,8 +37,8 @@ class mailSender extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'mail.mail',
-            with:  ["code" => $this->code]
+            view: 'mail.mail-active-account',
+            with:["code"=>$this->code , "name"=>$this->name]
         );
     }
 
