@@ -111,7 +111,7 @@
 
           </div>
           <div class="modal-footer">
-            <button type="submit" class="btn btn-primary">Enregister</button>
+            <button type="submit" class="btn btn-primary submit-button">Enregister</button>
 
           </form>
             <button type="button" data-bs-dismiss="modal" class="btn btn-primary">Fermer</button>
@@ -182,19 +182,18 @@
           
           form.addEventListener('submit', function(event) {
               event.preventDefault(); // Prevent the default form submission
-
               // Use a regular expression to extract the last digit
                idLigne = event.target.action.match(/\d+$/)[0];
-            console.log("this")
               // Use Bootstrap's modal for the confirmation dialog
               document.getElementById("triggerConfirmationModal").click();
-              console.log("that")
 
           });
       });
       // Add a click event listener to the confirmation button
       document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
           // Submit the form when confirmed
+          document.getElementById("confirmDeleteBtn").setAttribute("disabled","")
+
           const form = document.querySelector('.formDeleteLigne'+idLigne);
           form.submit();
       });

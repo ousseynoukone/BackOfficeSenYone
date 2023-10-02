@@ -254,6 +254,7 @@
   <script src="{{asset('assets/js/bootstrap.min.js')}}"></script>
   <script src="{{asset("assets/js/js_jquery.dataTables.min.js")}}"></script>
 <script>
+  // for datatable
 $(document).ready(function () {
     $('#table').DataTable({
         "language": {
@@ -262,7 +263,31 @@ $(document).ready(function () {
     });
 });
 
+
+
+
+
+
 </script>
+
+<script>
+ // for disable button on submit
+
+  $(document).ready(function() {
+      $('form').on('submit', function(event) {
+
+          var submitButtons = document.getElementsByClassName("submit-button");
+          for (var i = 0; i < submitButtons.length; i++) {
+              submitButtons[i].setAttribute("disabled", "true");
+          }
+
+      });
+  });
+</script>
+
+
+
+
 
  </body>
 

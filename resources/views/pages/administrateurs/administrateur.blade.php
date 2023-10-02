@@ -58,10 +58,10 @@
                         @csrf
                         @method('PUT')              
                         @if ($user->status==false)
-                        <button type="submit" class="btn btn-danger btn-sm">Désactiver</button>
+                        <button type="submit" class="btn submit-button btn-danger btn-sm">Désactiver</button>
      
                         @else
-                        <button type="submit" class="btn btn-success btn-sm">Activer</button>
+                        <button type="submit" class="btn submit-button btn-success btn-sm">Activer</button>
 
                         @endif
                   </form>
@@ -158,7 +158,7 @@
 
       </div>
       <div class="modal-footer">
-        <button type="submit" class="btn btn-primary">Enregistrer</button>
+        <button type="submit" class="btn btn-primary submit-button">Enregistrer</button>
         </form>
         <button type="button" data-bs-dismiss="modal" class="btn btn-primary">Fermer</button>
       </div>
@@ -249,7 +249,6 @@
 
 {{-- For confirming deletion --}}
 
-
 <script>
 
     document.addEventListener("DOMContentLoaded", function() {
@@ -272,6 +271,8 @@
         document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
             // Submit the form when confirmed
             const form = document.querySelector('.formDeleteAdmin'+idUser);
+            document.getElementById("confirmDeleteBtn").setAttribute("disabled","")
+
             form.submit();
         });
     });
@@ -323,6 +324,7 @@
         // Add a click event listener to the confirmation button
         document.getElementById('confirmResetDeleteBtn').addEventListener('click', function() {
             // Submit the form when confirmed
+            document.getElementById("confirmResetDeleteBtn").setAttribute("disabled","")
             const form = document.querySelector('.formResetAdmin'+idUser);
             form.submit();
         });

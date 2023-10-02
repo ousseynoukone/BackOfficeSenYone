@@ -196,7 +196,8 @@ $content=$jsonGeoJSON;
     {
         $ligne->delete();
         
-        toastr()->warning('Suppression effectué avec sucess');
+        // toastr()->warning('Suppression effectué avec sucess');
+        session()->flash('warning', 'Suppression effectué avec sucess');
 
         return back()->with('message', 'item deleted successfully');
     }

@@ -56,10 +56,10 @@
                         @csrf
                         @method('PUT')              
                         @if ($user->status==false)
-                        <button type="submit" class="btn btn-danger btn-sm">Désactiver</button>
+                        <button type="submit" class="btn btn-danger btn-sm submit-button">Désactiver</button>
      
                         @else
-                        <button type="submit" class="btn btn-success btn-sm">Activer</button>
+                        <button type="submit" class="btn btn-success submit-button btn-sm">Activer</button>
 
                         @endif
                   </form>
