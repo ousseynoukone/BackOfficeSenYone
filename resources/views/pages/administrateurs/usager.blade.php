@@ -9,7 +9,7 @@
       <div class="card-body p-4">
         <h5 class="card-title fw-semibold mb-4">Liste des usagers</h5>
         <div class="table-responsive">
-          <table class="table text-nowrap mb-0 align-middle">
+          <table id="table" class="table text-nowrap mb-0 align-middle">
             <thead class="text-dark fs-4">
               <tr>
                 <th class="border-bottom-0">

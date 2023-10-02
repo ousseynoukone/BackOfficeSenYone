@@ -7,6 +7,7 @@
   <title>SenYone Back Office</title>
   <link rel="shortcut icon" type="image/png" href="../assets/images/logos/favicon.png" />
   <link rel="stylesheet" href="{{ asset('assets/css/styles.css') }}">
+  <link rel="stylesheet" href="{{ asset("assets/css/jquery.dataTables.min.css") }}">
   <link rel="stylesheet" href="{{ asset('assets/css/mainStyles.css') }}">
   <link rel='stylesheet' href='https://unpkg.com/leaflet@1.8.0/dist/leaflet.css' crossorigin='' />
 
@@ -245,11 +246,23 @@
       </div>
     </div>
   </div>
-  <script src="../assets/libs/jquery/dist/jquery.min.js"></script>
+  <script src="{{asset("assets/libs/jquery/dist/jquery.min.js")}}"></script>
+
   <script src="../assets/libs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../assets/js/sidebarmenu.js"></script>
   <script src="{{asset('assets/js/app.min.js')}}"></script>
   <script src="{{asset('assets/js/bootstrap.min.js')}}"></script>
+  <script src="{{asset("assets/js/js_jquery.dataTables.min.js")}}"></script>
+<script>
+$(document).ready(function () {
+    $('#table').DataTable({
+        "language": {
+            "url": "{{asset('assets/json/French.json')}}"
+        }
+    });
+});
+
+</script>
 
  </body>
 
