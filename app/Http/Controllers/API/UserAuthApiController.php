@@ -44,7 +44,7 @@ class UserAuthApiController extends Controller
             return response()->json(['token' => $token ,'username'=> $user->name ,'email'=> $user->email]);
             
         }else{
-            return response("Email et/ou Mots de passe incorrecte", 401);
+            return response("Email et/ou Mots de passe incorrecte", 403);
         }
 
        
@@ -142,7 +142,7 @@ class UserAuthApiController extends Controller
             $this->sendActiveAccountMail($user->email);
         
             // Return a successful response with the token
-            return response("Compte crée",200);
+            return response("Compte crée , un email de vérification vous a été envoyé.",200);
         } catch (\Exception $e) {
             // Handle the exception and return an error response
             return response()->json(['error' => 'Registration failed. Please try again.'], 500);
