@@ -183,6 +183,7 @@ $content=$jsonGeoJSON;
             "tarifs" => "required|string"
         ]);
 
+
         $ligne->update($validated);
         toastr()->success('Mise a jour effectué avec sucess');
 

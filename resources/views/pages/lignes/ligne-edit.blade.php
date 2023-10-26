@@ -6,6 +6,8 @@
 <div class="card-body p-4">
     <h5 class="card-title fw-semibold mb-4">Modification des informations de la ligne</h5>
 <form method="POST" action="{{ route('ligne.update', $ligne->id) }}">
+    @method('PUT')
+    {{ csrf_field() }}
 
 
     <div class="mb-3">
