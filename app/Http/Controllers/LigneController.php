@@ -42,7 +42,8 @@ class LigneController extends Controller
         $validated = $this->validate($request, [
             "itineraire" => "required|max:2048", 
             "numero" => "required|unique:lignes,numero|numeric|min:1",
-            "check_point" => "required|string"
+            "check_point" => "required|string",
+            "tarifs" => "required|string"
         ]);
         // Handle file upload
         $uploadedFile = $request->file('itineraire');
@@ -54,6 +55,7 @@ class LigneController extends Controller
             'itineraire' => $kmlFilePath,
             'numero' => $validated['numero'],
             'check_point' => $validated['check_point'],
+            'tarifs' => $validated['tarifs'],
         ]);
     
         // Save the Ligne instance to the database
@@ -177,7 +179,8 @@ $content=$jsonGeoJSON;
     {
         $validated = $this->validate($request, [
             "numero" => "required|numeric | min:1",
-            "check_point" => "required|string"
+            "check_point" => "required|string",
+            "tarifs" => "required|string"
         ]);
 
         $ligne->update($validated);

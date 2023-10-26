@@ -5,7 +5,7 @@
 
 <div class="row">
   
-<div class="card text-start col-5">
+<div class="card text-start col-6">
 
 <div class="card-body p-4">
     <h5 class="card-title fw-semibold mb-4">Informations sur la  <span class="hightlight">ligne </span></h5>
@@ -30,6 +30,14 @@
     
 
     <div class="mb-3">
+        <label for="tarifs"  class="form-label">Tarifs</label>
+        <textarea class="form-control   @error('tarifs') is-invalid @enderror" rows="10" readonly id="tarifs" name="tarifs" required>{{ old('tarifs', $ligne->tarifs) }}</textarea>
+        @error('tarifs')
+        <div class="invalid-feedback">{{ $message }}</div>
+        @enderror
+    </div>
+
+    <div class="mb-3">
         <label for="numero" class="form-label">Numero</label>
         <input type="number " readonly class="form-control @error('numero') is-invalid @enderror" id="numero" name="numero" value="{{ old('numero', $ligne->numero) }}" required>
         @error('numero')
@@ -40,7 +48,7 @@
 </form>
 </div>
 </div>
-<div class="col-7" style="  z-index: 0;
+<div class="col-6" style="  z-index: 0;
 ">
     <p class='text-center h5'>Itinéraire du bus <span class="hightlight">{{$ligne->numero}}</span> </p>
 <div id='map' class="rounded" ></div>

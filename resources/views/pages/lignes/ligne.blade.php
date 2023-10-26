@@ -99,6 +99,15 @@
               <div class="invalid-feedback">{{ $message }}</div>
               @enderror
           </div>
+
+                      
+          <div class="mb-3">
+            <label for="tarifs" class="form-label">Tarifs</label>
+            <textarea class="form-control @error('tarifs') is-invalid @enderror" rows="10" id="tarifs" name="tarifs" required>{{ old('tarifs') }}</textarea>
+            @error('tarifs')
+            <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
           
               <div class="mb-3">
                   <label for="numero" class="form-label">Numero</label>

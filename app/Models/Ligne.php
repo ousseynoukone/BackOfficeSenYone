@@ -12,6 +12,7 @@ class Ligne extends Model
         'itineraire',
         'numero',
         'check_point',
+        'tarifs'
     ];
 
 }

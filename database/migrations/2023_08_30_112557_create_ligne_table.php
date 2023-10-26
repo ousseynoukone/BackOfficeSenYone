@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('itineraire');
             $table->string('check_point', 1000);
+            $table->string('tarifs', 1000);
             $table->integer('numero');
             
             $table->timestamps();
