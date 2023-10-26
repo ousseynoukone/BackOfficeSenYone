@@ -45,6 +45,14 @@
         @enderror
     </div>
 
+    <div class="mb-3">
+        <label for="frequence" class="form-label">Fréquence</label>
+        <input type="number " readonly class="form-control @error('frequence') is-invalid @enderror" id="frequence" name="frequence" value="{{ old('frequence', $ligne->frequence) }}" required>
+        @error('frequence')
+        <div class="invalid-feedback">{{ $message }}</div>
+        @enderror
+    </div>
+
 </form>
 </div>
 </div>

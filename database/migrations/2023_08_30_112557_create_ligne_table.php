@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('check_point', 1000);
             $table->string('tarifs', 1000);
             $table->integer('numero');
+            $table->integer('frequence')->default(15);
             
             $table->timestamps();
         });
