@@ -58,7 +58,7 @@
                 <span>
                     <i class="ti ti-user"></i>
                 </span>
-                <span class="hide-menu">Les Usagers</span>
+                <span class="hide-menu">Les usagers</span>
             </a>
         </li>
           
