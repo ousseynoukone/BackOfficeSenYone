@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\API\Operations\LineController;
+use App\Http\Controllers\API\Operations\UserLigneController;
 use App\Http\Controllers\API\UserAuthApiController;
 use App\Http\Controllers\LigneApiController;
 use Illuminate\Http\Request;
@@ -36,8 +38,9 @@ Route::post('/register', [UserAuthApiController::class, 'register'])->name('regi
 
 
 
-Route::middleware('auth')->group(function () {
+Route::middleware('auth:sanctum')->group(function () {
 
+    Route::resource('/lignes',UserLigneController::class);
 
 });
 

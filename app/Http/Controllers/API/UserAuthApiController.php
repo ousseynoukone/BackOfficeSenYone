@@ -38,8 +38,8 @@ class UserAuthApiController extends Controller
                 return response("Votre compte a été désactivée", 401);
 
             }
-            $token = $user->createToken('auth-token')->accessToken;
-    
+            $token = $user->createToken('auth_token')->plainTextToken;
+
 
             return response()->json(['token' => $token ,'username'=> $user->name ,'email'=> $user->email]);
             
