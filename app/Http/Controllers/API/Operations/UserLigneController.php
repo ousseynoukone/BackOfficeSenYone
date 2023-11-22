@@ -20,6 +20,8 @@ class UserLigneController extends Controller
         $lignes = Ligne::all();
         foreach ($lignes as $ligne) {
             $itineraireAsCoordinate = $this->extractItineraireAsCoordinate($ligne->itineraire);
+        
+
             $checkPointsArray = explode("–", $ligne->check_point);
             // Remove any empty elements
             $checkPointsArray = array_filter($checkPointsArray);
@@ -40,32 +42,6 @@ class UserLigneController extends Controller
         }, $tarifsArray);
 
 
-
-        //Implementation pas trés pro mais qui marche quand meme
-
-//    // Create an array to store the formatted tarifs
-// $tabAllTarifs = [];
-// foreach ($tarifsArray as $tarif) {
-//     // Use regular expression to extract section, place, and price
-//     preg_match('/SECTION (\d+): ([A-Za-z\s–]*)/', $tarif, $matches);
-//     preg_match('/(\d+)\D*$/', $tarif, $prixMatch);
-
-//     // Create a sub-array with section, place, and price
-//     $formattedTarif = [
-//         'section' => $matches[1],
-//         'place' => trim(substr($matches[2], 0, -1)),
-//         'price' => $prixMatch[1],
-//     ];
-   
-
-//     // Add the sub-array to the formattedTarifs array
-//     array_push($tabAllTarifs, $formattedTarif);
-//     var_dump($tabAllTarifs);
-//     // die();
-// }
-
-// var_dump($tabAllTarifs);
-
         
 
         
@@ -75,6 +51,11 @@ class UserLigneController extends Controller
         return  response($arrayOfLignes,200);
 
     }
+
+
+
+
+
 
     /**
      * Show the form for creating a new resource.
@@ -143,7 +124,63 @@ $coordinates = $matches[1][0];
 // Split the coordinates into individual pairs
 $coordinatePairs = explode(' ', $coordinates);
 $coordinatePairs = array_filter($coordinatePairs);
- return response($coordinatePairs,200);
+$tabCoordonate = [];
+
+foreach ($coordinatePairs as $index=> $pair) {
+    $coordinates = explode(',', $pair);
+    $lon = (float)$coordinates[1];
+    $lat = (float)$coordinates[0];
+    $tabCoordonate[] = [$lon, $lat];
+}
+
+
+ return response( $tabCoordonate,200);
+
+}  
+
+
+
+public function extractItineraireAsCoordinateNoResponse(String $cheminDuFichier)
+{  
+
+         
+$content1 =  Storage::get($cheminDuFichier);
+$content1 = str_replace("\n", '', $content1);
+$content1 = str_replace("\t", '', $content1);
+
+// Define a regular expression pattern to match the <LineString> element
+$pattern = '/<LineString>.*?<\/LineString>/s';
+
+// Use preg_match to find the first match in the content
+if (preg_match($pattern, $content1, $matches)) {
+// $matches[0] now contains the <LineString> element and its contents
+$lineString = $matches[0];
+
+// You can then work with the $lineString as needed
+// For example, to remove any remaining line breaks and tabs:
+$lineString = str_replace(["\n", "\t"], '', $lineString);
+
+// Now $lineString contains the cleaned <LineString> element
+}
+$content = $lineString;
+
+// Extract coordinates from KML data
+preg_match_all('/<coordinates>(.*?)<\/coordinates>/s', $content, $matches);
+$coordinates = $matches[1][0];
+// Split the coordinates into individual pairs
+$coordinatePairs = explode(' ', $coordinates);
+$coordinatePairs = array_filter($coordinatePairs);
+$tabCoordonate = [];
+
+foreach ($coordinatePairs as $index=> $pair) {
+$coordinates = explode(',', $pair);
+$lon = (float)$coordinates[1];
+$lat = (float)$coordinates[0];
+$tabCoordonate[] = [$lon, $lat];
+}
+
+
+return $tabCoordonate;
 
 }  
 

@@ -105,7 +105,6 @@ $tabStartAndEndCordinate = [];
 // Split the coordinates into individual pairs
 $coordinatePairs = explode(' ', $coordinates);
 $coordinatePairs = array_filter($coordinatePairs);
-
 // Create a GeoJSON feature for the LineString
 $feature = [
     'type' => 'Feature',
@@ -134,6 +133,8 @@ foreach ($coordinatePairs as $index=> $pair) {
   
 
 }
+
+
 
 // Create a GeoJSON object
 $geojson = [
