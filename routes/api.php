@@ -40,9 +40,11 @@ Route::post('/register', [UserAuthApiController::class, 'register'])->name('regi
 
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::resource('/trajets',UserTrajetController::class);
 
     Route::resource('/lignes',UserLigneController::class);
-    Route::resource('/trajets',UserTrajetController::class);
+    Route::post('/make-trajets',[UserTrajetController::class, 'makeTrajet']);
+
 
 });
 

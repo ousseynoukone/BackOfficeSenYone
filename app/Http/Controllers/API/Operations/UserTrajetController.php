@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\API\Operations\UserLigneController;
 
 use function PHPUnit\Framework\isEmpty;
+use Illuminate\Validation\ValidationException;
+use App\Http\Controllers\API\Operations\Helpers\BusStopFinder;
 
 class UserTrajetController extends Controller
 {
@@ -23,7 +25,47 @@ class UserTrajetController extends Controller
      * Display a listing of the resource.
      * 
      */
-    public function index()
+    public function makeTrajet(Request $request)
+    {
+        // Validation rules
+        $rules = [ 
+            'departLatitude' => 'required|numeric',
+            'departLongitude' => 'required|numeric',
+            'arriveLatitude' => 'required|numeric',
+            'arriveLongitude' => 'required|numeric',
+            'approximation' => 'required|integer', // Adjust the rule based on your needs
+        ];
+    
+        // Custom validation messages
+        $messages = [
+            'required' => 'The :attribute field is required.',
+            'numeric' => 'The :attribute must be a number.',
+            'integer' => 'The :attribute must be an integer.',
+        ];
+    
+        // Validate the request data
+        try {
+            $validatedData = $request->validate($rules, $messages);
+        } catch (ValidationException $e) {
+            // Validation failed, return the error response
+            return response()->json(['error' => $e->errors()], 400);
+        }
+    
+        // If validation passes, retrieve the validated data
+        $departLatitude = $validatedData['departLatitude'];
+        $departLongitude = $validatedData['departLongitude'];
+        $destinationLatitude = $validatedData['arriveLatitude'];
+        $destinationLongitude = $validatedData['arriveLongitude'];
+        $approximation = $validatedData['approximation'];
+    
+        // Call  SearchTrajet function with the validated data
+        return $this->searchForLine($departLatitude, $departLongitude,$approximation, $destinationLatitude, $destinationLongitude);
+    }
+
+
+
+
+    public function searchForLine($departLatitude,$departLongitude,$approximation,$destinationLatitude,$destinationLongitude)
     {
         $arrayOfLignes = array();
         $lignes = Ligne::all();
@@ -34,14 +76,7 @@ class UserTrajetController extends Controller
             array_push($arrayOfLignes, $arrayOfLineWithCoordinate);
         }
     
-        // Destination coordinates
-        $destinationLatitude =14.683141; // Destination latitude;,  
-        $destinationLongitude = -17.452698; // Destination longitude;
-
-
-        // 14.759197, -17.436353
-
-        $nearestLine = $this->NearestLineFromUserLocation(14.771785,-17.416451,1,$arrayOfLignes,$destinationLatitude,$destinationLongitude);
+        $nearestLine = $this->NearestLineFromUserLocation($departLatitude,$departLongitude,$approximation,$arrayOfLignes,$destinationLatitude,$destinationLongitude);
     
         // $nearestLine now contains the information about the nearest bus line that reaches the destination
         // You can return or use this information as needed
@@ -113,11 +148,11 @@ class UserTrajetController extends Controller
                     if (!empty($isCloseToDestination)) {
                         // Check if the line has already been added
                         if (!in_array($lineId, $addedLines)) {
-                            $directLines["DirectLines"][] = ["StartingPoint"=>$nearestPointFromTheUserLocation,$line,"EndingPoint"=>$isCloseToDestination];
+                            $directLines["DirectLines"][] = ["StartingPoint"=>$nearestPointFromTheUserLocation,$line,"EndingPoint"=>$isCloseToDestination,"busStop"=>$this->getNearestBusStop($isCloseToDestination,1)];
                             $addedLines[] = $lineId;
                         }
                     } else {
-                    $undirectLine [] = ["StartingPoint"=>$nearestPointFromTheUserLocation,$line];
+                    $undirectLine [] = ["StartingPoint"=>$nearestPointFromTheUserLocation,"busStop"=>$this->getNearestBusStop($nearestPointFromTheUserLocation,1),$line];
 
               
                     for ($i = 0; $i < 3; $i++) {
@@ -290,7 +325,7 @@ function findNearestLine($currentLine, $arrayOfLignes, $destinationLatitude, $de
     }
 
     // Include the nearest point on the chosen line in the result
-    return [  'StartingPoint' => $nearestPointByCurrentLine , $nearestLineToDestination];
+    return [  'StartingPoint' => $nearestPointByCurrentLine,"busStop"=>$this->getNearestBusStop($nearestPointByCurrentLine,1) , $nearestLineToDestination];
 }
 
     
@@ -311,6 +346,30 @@ function findNearestLine($currentLine, $arrayOfLignes, $destinationLatitude, $de
     
         return [];
     }
+
+
+
+
+    public function getNearestBusStop($point,$limit)
+    {
+
+        $latitude = $point[0];
+        $longitude = $point[1];
+       $busStopFinder = new BusStopFinder();
+       $result = $busStopFinder->getNearestBusStop($latitude, $longitude,$limit);
+
+       // Check if a bus stop was found
+       if ($result !== null) {
+           return $result;
+       }
+       
+        else {
+           return null ;
+       }
+
+
+    }
+
 
     /**
      * Show the form for creating a new resource.
