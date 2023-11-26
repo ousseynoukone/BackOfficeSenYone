@@ -49,14 +49,14 @@ class BusStopFinder {
             // Extracted information
             $coordinates = ['lon' => $geometry[0], 'lat' => $geometry[1]];
             $distance = $properties['distance'];
-            $operator = $properties['datasource']['raw']['operator'];
+            // $operator = $properties['datasource']['raw']['operator'];
             $street = $properties['street'];
 
             // Return the result
             return [
                 'coordinates' => $coordinates,
                 'distance' => $distance,
-                'operator' => $operator,
+                // 'operator' => $operator,
                 'street' => $street,
             ];
 
