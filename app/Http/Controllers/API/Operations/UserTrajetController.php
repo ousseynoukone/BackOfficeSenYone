@@ -163,12 +163,20 @@ class UserTrajetController extends Controller
                    
                   
                         $point = $this->userIsCloseToDestination($currentLineToActualLineAndDestination[0][1], $destinationLatitude, $destinationLongitude);
-                       
-                        if (empty($point)==false || $i === 2) {
+                       echo("empty(point)==false " .empty($point)==true );
+                        if (empty($point)==false) {
                         //   break if 3 attemps has passed or we have reaches or destination
+                     
                            $breakAll = true;
                            $undirectLine[] = [$currentLineToActualLineAndDestination,"EndingPoint"=>$point];
                             break;
+                        }
+                        if(empty($point)==true && $i == 2 ){
+                            $breakAll = true;
+                            $undirectLine=[];
+                            break;
+
+
                         }
 
 
@@ -186,35 +194,35 @@ class UserTrajetController extends Controller
 
 
 
-                    //                     // Check for lines starting nearly at the same point in $undirectLine
-                    // for ($i = 0; $i < count($undirectLine) - 1; $i++) {
+                                        // Check for lines starting nearly at the same point in $undirectLine
+                    for ($i = 0; $i < count($undirectLine) - 1; $i++) {
                     
-                    //     for ($j = $i + 1; $j < count($undirectLine)-1; $j++) {
+                        for ($j = $i + 1; $j < count($undirectLine)-1; $j++) {
               
-                    //             $distanceBetweenStartPoints = $this->haversineDistance(
-                    //                 $undirectLine[$i][0][1][0][0], $undirectLine[$i][0][1][0][1],
-                    //                 $undirectLine[$j][0][1][0][0], $undirectLine[$j][0][1][0][1],
-                    //             );
+                                $distanceBetweenStartPoints = $this->haversineDistance(
+                                    $undirectLine[$i][0][1][0][0], $undirectLine[$i][0][1][0][1],
+                                    $undirectLine[$j][0][1][0][0], $undirectLine[$j][0][1][0][1],
+                                );
                            
                     
 
-                    //         // Assuming 100m is the threshold for considering lines starting nearly at the same point
-                    //         $thresholdDistance = 0.1; // Adjust this value as needed
+                            // Assuming 100m is the threshold for considering lines starting nearly at the same point
+                            $thresholdDistance = 0.1; // Adjust this value as needed
 
-                    //         if ($distanceBetweenStartPoints < $thresholdDistance) {
-                    //             // Remove one of the lines (choose which one to keep or remove based on your criteria)
-                    //             // For example, you can remove the line with the longer length
-                    //             $lengthI = $this->calculateLineLength($undirectLine[$i][0][1]);
-                    //             $lengthJ = $this->calculateLineLength($undirectLine[$j][0][1]);
+                            if ($distanceBetweenStartPoints < $thresholdDistance) {
+                                // Remove one of the lines (choose which one to keep or remove based on your criteria)
+                                // For example, you can remove the line with the longer length
+                                $lengthI = $this->calculateLineLength($undirectLine[$i][0][1]);
+                                $lengthJ = $this->calculateLineLength($undirectLine[$j][0][1]);
 
-                    //             if ($lengthI > $lengthJ) {
-                    //                 unset($undirectLine[$j]);
-                    //             } else {
-                    //                 unset($undirectLine[$i]);
-                    //             }
-                    //         }
-                    //     }
-                    // }
+                                if ($lengthI > $lengthJ) {
+                                    unset($undirectLine[$j]);
+                                } else {
+                                    unset($undirectLine[$i]);
+                                }
+                            }
+                        }
+                    }
 
                                         // // If undirectLine contains 1 or 4 lines, reset it to an empty array
                                         if (count($undirectLine) > 4 || count($undirectLine) < 2  ) {
@@ -387,6 +395,14 @@ function findNearestLine($i,$currentLine, $arrayOfLignes, $destinationLatitude, 
 
     }
 
+    if($i>=1){
+        echo("currentLinev i ".$currentLine[0][0]."\n");
+
+    }else{
+        echo("currentLinev ".$currentLine[0]."\n");
+
+    }
+    echo("nearestLineToCurrent ".$nearestLineToCurrent[0]."\n");
 
     // Now, find the nearest point to the destination on the chosen line
     foreach ($nearestLineToCurrent[1] as $point) {
@@ -397,7 +413,9 @@ function findNearestLine($i,$currentLine, $arrayOfLignes, $destinationLatitude, 
         }
     }
 
-  
+    echo("distanceToDestinationLine ".$distanceToDestinationLine."\n");
+    echo("minDistanceToDestination ".$minDistanceToDestination."\n");
+
 
     //echo($currentLine[0]);
     // Include the nearest point on the chosen line in the result
