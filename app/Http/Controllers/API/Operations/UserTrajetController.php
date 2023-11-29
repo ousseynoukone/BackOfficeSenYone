@@ -148,7 +148,7 @@ class UserTrajetController extends Controller
                     if (!empty($isCloseToDestination)) {
                         // Check if the line has already been added
                         if (!in_array($lineId, $addedLines)) {
-                            $directLines["DirectLines"][] = ["StartingPoint"=>$nearestPointFromTheUserLocation,$line,"EndingPoint"=>$isCloseToDestination,"busStop"=>$this->getNearestBusStop($isCloseToDestination,1)];
+                            $directLines["DirectLines"][] = ["StartingPoint"=>$nearestPointFromTheUserLocation,$line,"EndingPoint"=>$isCloseToDestination,"busStopD"=>$this->getNearestBusStop($nearestPointFromTheUserLocation,1),"busStopA"=>$this->getNearestBusStop($isCloseToDestination,1)];
                             $addedLines[] = $lineId;
                         }
                     } else {
@@ -163,7 +163,7 @@ class UserTrajetController extends Controller
                    
                   
                         $point = $this->userIsCloseToDestination($currentLineToActualLineAndDestination[0][1], $destinationLatitude, $destinationLongitude);
-                       echo("empty(point)==false " .empty($point)==true );
+                       
                         if (empty($point)==false) {
                         //   break if 3 attemps has passed or we have reaches or destination
                      
@@ -395,14 +395,14 @@ function findNearestLine($i,$currentLine, $arrayOfLignes, $destinationLatitude, 
 
     }
 
-    if($i>=1){
-        echo("currentLinev i ".$currentLine[0][0]."\n");
+    // if($i>=1){
+    //     echo("currentLinev i ".$currentLine[0][0]."\n");
 
-    }else{
-        echo("currentLinev ".$currentLine[0]."\n");
+    // }else{
+    //     echo("currentLinev ".$currentLine[0]."\n");
 
-    }
-    echo("nearestLineToCurrent ".$nearestLineToCurrent[0]."\n");
+    // }
+    // echo("nearestLineToCurrent ".$nearestLineToCurrent[0]."\n");
 
     // Now, find the nearest point to the destination on the chosen line
     foreach ($nearestLineToCurrent[1] as $point) {
@@ -413,8 +413,8 @@ function findNearestLine($i,$currentLine, $arrayOfLignes, $destinationLatitude, 
         }
     }
 
-    echo("distanceToDestinationLine ".$distanceToDestinationLine."\n");
-    echo("minDistanceToDestination ".$minDistanceToDestination."\n");
+    // echo("distanceToDestinationLine ".$distanceToDestinationLine."\n");
+    // echo("minDistanceToDestination ".$minDistanceToDestination."\n");
 
 
     //echo($currentLine[0]);
