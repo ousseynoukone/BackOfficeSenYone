@@ -8,8 +8,11 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\API\Operations\UserLigneController;
 
 use function PHPUnit\Framework\isEmpty;
+use function Ramsey\Uuid\v1;
+
 use Illuminate\Validation\ValidationException;
 use App\Http\Controllers\API\Operations\Helpers\BusStopFinder;
+use Point;
 
 class UserTrajetController extends Controller
 {
@@ -57,10 +60,234 @@ class UserTrajetController extends Controller
         $destinationLatitude = $validatedData['arriveLatitude'];
         $destinationLongitude = $validatedData['arriveLongitude'];
         $approximation = $validatedData['approximation'];
-    
-        // Call  SearchTrajet function with the validated data
-        return $this->searchForLine($departLatitude, $departLongitude,$approximation, $destinationLatitude, $destinationLongitude);
+       
+        $trajet= $this->searchForLine($departLatitude, $departLongitude,$approximation, $destinationLatitude, $destinationLongitude);
+ 
+
+        if(isset( $trajet["IndirectLines"][0])){
+            $indirectLines = $trajet["IndirectLines"][0];
+            if(!empty($indirectLines)){
+                $trajet["IndirectLines"][0] =  $this->filterUndirectLineToGetTheExacteRouteWithoutAnyUselessPoint($indirectLines) ;
+
+            }
+        }
+
+        //get distance direct traject and min
+        $directLines = $trajet["DirectLines"];
+   if(!empty($directLines)){
+        $minDistance = PHP_INT_MAX;
+        $minDistanceLineIndex = -1;
+
+        foreach ($directLines as $index => $directLine) {
+            $lineCoordinates = $directLine[0][1];
+
+            $extractedPoints =  $this->extractPointBeetwen($lineCoordinates,$directLine["StartingPoint"],$directLine["EndingPoint"]);
+
+            $distance = $this->calculateLineLength($extractedPoints);
+
+            // Add the distance to the directLine
+            $trajet["DirectLines"][$index]["distance"] = $distance;
+
+            // Update minDistance and minDistanceLineIndex if a shorter distance is found
+            if ($distance < $minDistance) {
+                $minDistance = $distance;
+                $minDistanceLineIndex = $index;
+            }
+        }
+
+        // Mark the line with the minimum distance as "min"
+        if ($minDistanceLineIndex !== -1) {
+            $trajet["DirectLines"][$minDistanceLineIndex]["status"] = true;
+        }
     }
+
+        if(!empty($trajet["IndirectLines"])){
+            $result = $this->findDistanceOfIndirectTraject($trajet["IndirectLines"][0]);
+            $trajet["IndirectLines"]["distance"] =     $result;
+
+
+        }
+
+
+
+
+
+
+    
+      return   $trajet;
+    }
+
+    function findDistanceOfIndirectTraject($undirectLines) {
+        $distance = 0 ;
+
+        foreach ($undirectLines as $key => $undirectLine) {
+            
+            $extractedPoints =  $this->extractPointBeetwen($undirectLine["ligne"][1],$undirectLine["StartingPoint"],$undirectLine["EndingPoint"]);
+
+            $distance += $this->calculateLineLength($extractedPoints);
+        }
+
+        return $distance;
+
+        
+    }
+
+    
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+public function filterUndirectLineToGetTheExacteRouteWithoutAnyUselessPoint($indirectLines) {
+   
+
+    $ultimateStartingPoint = $indirectLines[0]["StartingPoint"];
+
+    $ultimateEndingPoint =[];
+
+
+
+    if(count($indirectLines)==3){
+        $ultimateEndingPoint = $indirectLines[2]["EndingPoint"];
+
+    }
+    if(count($indirectLines)==2){
+        $ultimateEndingPoint = $indirectLines[1]["EndingPoint"];
+
+    }
+
+
+
+
+        
+        $line1 = $indirectLines[0][0];
+    
+        if (count($indirectLines) == 3) {
+            $line2 = $indirectLines[1][0];
+            $line3 = $indirectLines[2][0][0];
+        }
+    
+        if (count($indirectLines) == 2) {
+            $line3 = [];
+            $line2 = $indirectLines[1][0][0];
+        }
+    
+        //---------------------------------
+        $nearestPoint1 = [];
+        $nearestPoint2 = [];
+    
+        if (count($indirectLines) == 3) {
+            $nearestPoint1 = $this->findNearestPointOnNextLine($line1, $line2);
+            $nearestPoint2 = $this->findNearestPointOnNextLine($line2, $line3);
+        } else {
+            $nearestPoint1 = $this->findNearestPointOnNextLine($line1, $line2);
+        }
+
+
+        //----------------------------------
+
+
+
+        $indirectTrajets = [];
+
+        if( !empty($line1)){
+
+            $indirectTrajets [] = [
+                "StartingPoint" => $ultimateStartingPoint,
+                "EndingPoint" => $nearestPoint1,
+                "ArretbusD"=>$this->getNearestBusStop( $ultimateStartingPoint,1),
+                "ArretbusA"=>$this->getNearestBusStop($nearestPoint1,1),
+                "ligne"=>$line1
+            ];
+
+        }
+
+        if( !empty($line2)){
+            $endingPoint =  $nearestPoint2;
+
+                if(count($indirectLines)==2){
+        $endingPoint = $indirectLines[1]["EndingPoint"];
+
+    }
+
+            //le point leplus proche de nearestPoint1 par rapport au ligne suivant
+
+            $departPoint = $this->findClosestPointInLine($line2,$nearestPoint1);
+         
+       
+            $indirectTrajets [] = [
+                "StartingPoint" => $departPoint,
+                "EndingPoint" =>  $endingPoint,
+                "ArretbusD"=>$this->getNearestBusStop($departPoint,1),
+                "ArretbusA"=>$this->getNearestBusStop($endingPoint,1),
+                "ligne"=>$line2
+            ];
+
+        }
+
+        if( !empty($line3)){
+
+            $departPoint = $this->findClosestPointInLine($line3,$nearestPoint2);
+
+
+            $indirectTrajets [] = [
+                "StartingPoint" =>  $departPoint,
+                "EndingPoint" => $ultimateEndingPoint,
+                "ArretbusD"=>$this->getNearestBusStop( $departPoint,1),
+                "ArretbusA"=>$this->getNearestBusStop($ultimateEndingPoint,1),
+                "ligne"=>$line3
+            ];
+
+        }
+
+
+
+
+    return $indirectTrajets;
+    
+    }
+    
+
+
+    public function findNearestPointOnNextLine($line, $nextLine) {
+        $minDistance = PHP_INT_MAX;
+        $nearestPoint = null;
+    
+        foreach ($line[1] as $point) {
+            foreach ($nextLine[1] as $nextPoint) {
+                $distance = $this->haversineDistance($point[0], $point[1], $nextPoint[0], $nextPoint[1]);
+    
+                if ($distance < $minDistance) {
+                    $minDistance = $distance;
+                    $nearestPoint = $point;
+                }
+            }
+        }
+    
+        return $nearestPoint;
+    }
+    
+
+
+    
+    
+
+
+
+
+
+
 
 
 
@@ -148,6 +375,10 @@ class UserTrajetController extends Controller
                     if (!empty($isCloseToDestination)) {
                         // Check if the line has already been added
                         if (!in_array($lineId, $addedLines)) {
+
+
+
+
                             $directLines["DirectLines"][] = ["StartingPoint"=>$nearestPointFromTheUserLocation,$line,"EndingPoint"=>$isCloseToDestination,"busStopD"=>$this->getNearestBusStop($nearestPointFromTheUserLocation,1),"busStopA"=>$this->getNearestBusStop($isCloseToDestination,1)];
                             $addedLines[] = $lineId;
                         }
@@ -195,34 +426,34 @@ class UserTrajetController extends Controller
 
 
                                         // Check for lines starting nearly at the same point in $undirectLine
-                    for ($i = 0; $i < count($undirectLine) - 1; $i++) {
+                    // for ($i = 0; $i < count($undirectLine) - 1; $i++) {
                     
-                        for ($j = $i + 1; $j < count($undirectLine)-1; $j++) {
+                    //     for ($j = $i + 1; $j < count($undirectLine)-1; $j++) {
               
-                                $distanceBetweenStartPoints = $this->haversineDistance(
-                                    $undirectLine[$i][0][1][0][0], $undirectLine[$i][0][1][0][1],
-                                    $undirectLine[$j][0][1][0][0], $undirectLine[$j][0][1][0][1],
-                                );
+                    //             $distanceBetweenStartPoints = $this->haversineDistance(
+                    //                 $undirectLine[$i][0][1][0][0], $undirectLine[$i][0][1][0][1],
+                    //                 $undirectLine[$j][0][1][0][0], $undirectLine[$j][0][1][0][1],
+                    //             );
                            
                     
 
-                            // Assuming 100m is the threshold for considering lines starting nearly at the same point
-                            $thresholdDistance = 0.1; // Adjust this value as needed
+                    //         // Assuming 100m is the threshold for considering lines starting nearly at the same point
+                    //         $thresholdDistance = 0.1; // Adjust this value as needed
 
-                            if ($distanceBetweenStartPoints < $thresholdDistance) {
-                                // Remove one of the lines (choose which one to keep or remove based on your criteria)
-                                // For example, you can remove the line with the longer length
-                                $lengthI = $this->calculateLineLength($undirectLine[$i][0][1]);
-                                $lengthJ = $this->calculateLineLength($undirectLine[$j][0][1]);
+                    //         if ($distanceBetweenStartPoints < $thresholdDistance) {
+                    //             // Remove one of the lines (choose which one to keep or remove based on your criteria)
+                    //             // For example, you can remove the line with the longer length
+                    //             $lengthI = $this->calculateLineLength($undirectLine[$i][0][1]);
+                    //             $lengthJ = $this->calculateLineLength($undirectLine[$j][0][1]);
 
-                                if ($lengthI > $lengthJ) {
-                                    unset($undirectLine[$j]);
-                                } else {
-                                    unset($undirectLine[$i]);
-                                }
-                            }
-                        }
-                    }
+                    //             if ($lengthI > $lengthJ) {
+                    //                 unset($undirectLine[$j]);
+                    //             } else {
+                    //                 unset($undirectLine[$i]);
+                    //             }
+                    //         }
+                    //     }
+                    // }
 
                                         // // If undirectLine contains 1 or 4 lines, reset it to an empty array
                                         if (count($undirectLine) > 4 || count($undirectLine) < 2  ) {
@@ -279,19 +510,19 @@ class UserTrajetController extends Controller
 
     function calculateLineLength($lineCoordinates)
 {
-    $lineLength = 0;
+        $lineLength = 0;
 
-    // Iterate through each point in the line
-    for ($i = 1; $i < count($lineCoordinates); $i++) {
-        $point1 = $lineCoordinates[$i - 1];
-        $point2 = $lineCoordinates[$i];
+        // Iterate through each point in the line
+        for ($i = 1; $i < count($lineCoordinates); $i++) {
+            $point1 = $lineCoordinates[$i - 1];
+            $point2 = $lineCoordinates[$i];
 
-        // Calculate the distance between two consecutive points and add to the total length
-        $distance = $this->haversineDistance($point1[0], $point1[1], $point2[0], $point2[1]);
-        $lineLength += $distance;
-    }
+            // Calculate the distance between two consecutive points and add to the total length
+            $distance = $this->haversineDistance($point1[0], $point1[1], $point2[0], $point2[1]);
+            $lineLength += $distance;
+        }
 
-    return $lineLength;
+        return $lineLength;
 }
 
     
@@ -423,7 +654,23 @@ function findNearestLine($i,$currentLine, $arrayOfLignes, $destinationLatitude, 
 }
 
     
-    
+public function findClosestPointInLine($line, $targetPoint)
+{
+    $minDistance = PHP_INT_MAX;
+    $closestPoint = null;
+
+    foreach ($line[1] as $point) {
+        $distance = $this->haversineDistance($point[0], $point[1], $targetPoint[0], $targetPoint[1]);
+
+        if ($distance < $minDistance) {
+            $minDistance = $distance;
+            $closestPoint = $point;
+        }
+    }
+
+    return $closestPoint;
+}
+
 
 
 
@@ -446,6 +693,9 @@ function findNearestLine($i,$currentLine, $arrayOfLignes, $destinationLatitude, 
 
     public function getNearestBusStop($point,$limit)
     {
+        if(!empty($point)){
+
+      
 
         $latitude = $point[0];
         $longitude = $point[1];
@@ -455,12 +705,36 @@ function findNearestLine($i,$currentLine, $arrayOfLignes, $destinationLatitude, 
        // Check if a bus stop was found
        if ($result !== null) {
            return $result;
+       }else{
+                   return null ;
+
        }
+         }
        
         else {
            return null ;
        }
 
+
+    }
+
+    public function extractPointBeetwen($line,$pointA,$pointB){
+                        // Extract points between $nearestPointFromTheUserLocation and $isCloseToDestination
+                $startExtraction = false;
+                $extractedPoints = [];
+                foreach ($line as $pointOnLine) {
+                    if ($pointOnLine === $pointA) {
+                        $startExtraction = true;
+                    }
+                    if ($startExtraction) {
+                        $extractedPoints[] = $pointOnLine;
+                        if ($pointOnLine === $pointB) {
+                            break; // Stop extraction when reaching $isCloseToDestination
+                        }
+                    }
+                }
+
+                return $extractedPoints;
 
     }
 
