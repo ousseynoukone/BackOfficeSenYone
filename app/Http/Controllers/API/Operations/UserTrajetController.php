@@ -373,13 +373,14 @@ public function filterUndirectLineToGetTheExacteRouteWithoutAnyUselessPoint($ind
                     $isCloseToDestination = $this->userIsCloseToDestination($line[1], $destinationLatitude, $destinationLongitude);
     
                     if (!empty($isCloseToDestination)) {
-                        // Check if the line has already been added
+                        // Check if the line has already been added     
                         if (!in_array($lineId, $addedLines)) {
 
 
 
-
-                            $directLines["DirectLines"][] = ["StartingPoint"=>$nearestPointFromTheUserLocation,$line,"EndingPoint"=>$isCloseToDestination,"busStopD"=>$this->getNearestBusStop($nearestPointFromTheUserLocation,1),"busStopA"=>$this->getNearestBusStop($isCloseToDestination,1)];
+                            $tarifs = Ligne::where("numero" , $line[0])->get("tarifs");
+                          
+                            $directLines["DirectLines"][] = ["StartingPoint"=>$this->findClosestPointInLine($line, [$userLatitude, $userLongitude]),$line,"EndingPoint"=>$isCloseToDestination,"busStopD"=>$this->getNearestBusStop($this->findClosestPointInLine($line, [$userLatitude, $userLongitude]),1),"busStopA"=>$this->getNearestBusStop($isCloseToDestination,1),"tarifs"=>$tarifs];
                             $addedLines[] = $lineId;
                         }
                     } else {

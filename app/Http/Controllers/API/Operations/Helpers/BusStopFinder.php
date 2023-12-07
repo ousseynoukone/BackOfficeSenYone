@@ -14,7 +14,7 @@ class BusStopFinder {
         $apiEndpoint = 'https://api.geoapify.com/v2/places';
 
         // API parameters
-        $categories = 'public_transport.bus';
+        $categories = 'public_transport';
         $bias = "proximity:$longitude,$latitude";
         $limit = $limit;
 
