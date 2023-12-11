@@ -188,9 +188,19 @@ return $tabCoordonate;
      * Show the form for editing the specified resource.
      */
 
-     public function show(string $id)
-     {
-         
+     public function show(string $num)
+     {      
+            $line=Ligne::where("numero",$num)->first();
+            $itineraire =   $this->extractItineraireAsCoordinateNoResponse($line->itineraire);
+            $tabAll = [
+                "id"=>$line->id,
+                "itineraire"=>$itineraire
+
+            ];
+        
+            return response($tabAll, 200);
+        
+        
      }
     public function edit(string $id)
     {

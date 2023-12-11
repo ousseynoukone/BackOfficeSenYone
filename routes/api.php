@@ -4,6 +4,8 @@ use App\Http\Controllers\API\Operations\LineController;
 use App\Http\Controllers\API\Operations\UserLigneController;
 use App\Http\Controllers\API\Operations\UserTrajetController;
 use App\Http\Controllers\API\UserAuthApiController;
+use App\Http\Controllers\DirectTrajetController;
+use App\Http\Controllers\IndirectTrajetController;
 use App\Http\Controllers\LigneApiController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -39,12 +41,15 @@ Route::post('/register', [UserAuthApiController::class, 'register'])->name('regi
 
 
 
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::resource('/trajets',UserTrajetController::class);
 
     Route::resource('/lignes',UserLigneController::class);
     Route::post('/make-trajets',[UserTrajetController::class, 'makeTrajet']);
 
+    Route::resource('/trajets-historiqueD',DirectTrajetController::class);
+    Route::resource('/trajets-historiqueI',IndirectTrajetController::class);
 
 });
 

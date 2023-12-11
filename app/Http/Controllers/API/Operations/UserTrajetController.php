@@ -397,183 +397,228 @@ public function filterUndirectLineToGetTheExacteRouteWithoutAnyUselessPoint($ind
     }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     function NearestLineFromUserLocation($userLatitude, $userLongitude, $maxDistance, $arrayOfLignes, $destinationLatitude, $destinationLongitude)
-    {
-        $undirectLines = [
-            "IndirectLines" => [],
-        ];
-    
-        $directLines = [
-            "DirectLines" => [],
-        ];
-    
-        $addedLines = [];
+{
+    $directLines = $this->searchDirectLines($userLatitude, $userLongitude, $maxDistance, $arrayOfLignes, $destinationLatitude, $destinationLongitude);
+    $indirectLines = $this->searchIndirectLines($userLatitude, $userLongitude, $maxDistance, $arrayOfLignes, $destinationLatitude, $destinationLongitude);
 
-        $minDistancePoint = null;
-        $breakAll = false;
-   
-        foreach ($arrayOfLignes as $line) {
-      
-            $lineId = $line[0];
-    
-            // Check if the line has already been added
-            if (in_array($lineId, $addedLines)) {
-                continue;
+    return array_merge($directLines, $indirectLines);
+}
+
+function searchDirectLines($userLatitude, $userLongitude, $maxDistance, $arrayOfLignes, $destinationLatitude, $destinationLongitude)
+{
+    $directLines = [
+        "DirectLines" => [],
+    ];
+
+    $addedLines = [];
+
+    foreach ($arrayOfLignes as $line) {
+        $lineId = $line[0];
+
+        if (in_array($lineId, $addedLines)) {
+            continue;
+        }
+
+        $nearestPointFromTheUserLocation = PHP_INT_MAX;
+
+        foreach ($line[1] as $point) {
+            $distanceToUser = $this->haversineDistance($userLatitude, $userLongitude, $point[0], $point[1]);
+
+            if ($nearestPointFromTheUserLocation > $distanceToUser && $distanceToUser < $maxDistance) {
+                $nearestPointFromTheUserLocation = $point;
             }
 
-            $nearestPointFromTheUserLocation = PHP_INT_MAX;
+            if ($distanceToUser < $maxDistance) {
+                $isCloseToDestination = $this->userIsCloseToDestination($line[1], $destinationLatitude, $destinationLongitude);
 
-    
-            foreach ($line[1] as $point) {
-        
-                $distanceToUser = $this->haversineDistance($userLatitude, $userLongitude, $point[0], $point[1]);
+                if (!empty($isCloseToDestination)) {
+                    if (!in_array($lineId, $addedLines)) {
+                        $startingPoint = $this->findClosestPointInLine($line, [$userLatitude, $userLongitude]);
+                        $tarifs = Ligne::where("numero", $line[0])->get("tarifs");
+                        $userLocation  = [$userLatitude, $userLongitude];
+                        $route = $this->geopify->getRoute($startingPoint, $userLocation);
 
-                if($nearestPointFromTheUserLocation> $distanceToUser && $distanceToUser < $maxDistance){
-                    $nearestPointFromTheUserLocation = $point;
-                }
-      
-                if ($distanceToUser < $maxDistance) {
-
-
-                    $isCloseToDestination = $this->userIsCloseToDestination($line[1], $destinationLatitude, $destinationLongitude);
-    
-                    if (!empty($isCloseToDestination)) {
-                        // Check if the line has already been added     
-                        if (!in_array($lineId, $addedLines)) {
-
-
-                            $startingPoint = $this->findClosestPointInLine($line, [$userLatitude, $userLongitude]);
-                            $tarifs = Ligne::where("numero" , $line[0])->get("tarifs");
-                            $userLocation  = [$userLatitude, $userLongitude];
-                            $route = $this->geopify->getRoute($startingPoint,$userLocation);
-                           
-                          
-                            $directLines["DirectLines"][] = ["StartingPoint"=>$startingPoint,$line,"EndingPoint"=>$isCloseToDestination,"busStopD"=>$this->getNearestBusStop($this->findClosestPointInLine($line, [$userLatitude, $userLongitude]),1),"busStopA"=>$this->getNearestBusStop($isCloseToDestination,1),"tarifs"=>$tarifs,"route"=> $route];
-                            $addedLines[] = $lineId;
-                        }
-                    } else {
-                    $undirectLine [] = [$line,"StartingPoint"=>$nearestPointFromTheUserLocation,"busStop"=>$this->getNearestBusStop($nearestPointFromTheUserLocation,1)];
-
-              
-                    for ($i = 0; $i < 3; $i++) {
-                       
-                        $currentLineToActualLineAndDestination = $this->findNearestLine($i,$line, $arrayOfLignes, $destinationLatitude, $destinationLongitude);
-                        
-
-                   
-                  
-                        $point = $this->userIsCloseToDestination($currentLineToActualLineAndDestination[0][1], $destinationLatitude, $destinationLongitude);
-                       
-                        if (empty($point)==false) {
-                        //   break if 3 attemps has passed or we have reaches or destination
-                     
-                           $breakAll = true;
-                           $undirectLine[] = [$currentLineToActualLineAndDestination,"EndingPoint"=>$point];
-                            break;
-                        }
-                        if(empty($point)==true && $i == 2 ){
-                            $breakAll = true;
-                            $undirectLine=[];
-                            break;
-
-
-                        }
-
-
-
-                        // Set the current line to the result of the previous call
-                        $undirectLine[] = $currentLineToActualLineAndDestination;
-
-                        $line = $currentLineToActualLineAndDestination;
-                    }
-
-
-
-
-
-
-
-
-                                        // Check for lines starting nearly at the same point in $undirectLine
-                    // for ($i = 0; $i < count($undirectLine) - 1; $i++) {
-                    
-                    //     for ($j = $i + 1; $j < count($undirectLine)-1; $j++) {
-              
-                    //             $distanceBetweenStartPoints = $this->haversineDistance(
-                    //                 $undirectLine[$i][0][1][0][0], $undirectLine[$i][0][1][0][1],
-                    //                 $undirectLine[$j][0][1][0][0], $undirectLine[$j][0][1][0][1],
-                    //             );
-                           
-                    
-
-                    //         // Assuming 100m is the threshold for considering lines starting nearly at the same point
-                    //         $thresholdDistance = 0.1; // Adjust this value as needed
-
-                    //         if ($distanceBetweenStartPoints < $thresholdDistance) {
-                    //             // Remove one of the lines (choose which one to keep or remove based on your criteria)
-                    //             // For example, you can remove the line with the longer length
-                    //             $lengthI = $this->calculateLineLength($undirectLine[$i][0][1]);
-                    //             $lengthJ = $this->calculateLineLength($undirectLine[$j][0][1]);
-
-                    //             if ($lengthI > $lengthJ) {
-                    //                 unset($undirectLine[$j]);
-                    //             } else {
-                    //                 unset($undirectLine[$i]);
-                    //             }
-                    //         }
-                    //     }
-                    // }
-
-                                        // // If undirectLine contains 1 or 4 lines, reset it to an empty array
-                                        if (count($undirectLine) > 4 || count($undirectLine) < 2  ) {
-                                            $undirectLine = [];
-                                        }
-                    
-
-                    // Reset array keys after removal
-                    $undirectLine = array_values($undirectLine);
-
-                    // Continue with the rest of your code
-                    // ...
-
-
-
-
-                    // Check if the undirect line is already in the array
-
-                    // if (!empty($undirectLines["IndirectLines"])) {
-                    //     $undirectLineExists = false;
-                    // foreach ($undirectLines["IndirectLines"] as $existingLine) {
-                    //     if ($existingLine[0] === $undirectLine[0]) {
-                    //         $undirectLineExists = true;
-                    //         break;
-                    //     }
-                    // }
-
-                    // // Add the undirect line if it doesn't exist in the array
-                    // if (!$undirectLineExists) {
-                    //     $undirectLines["IndirectLines"][] = $undirectLine;
-                    // }
-                    // }
-                    $undirectLines["IndirectLines"][] = $undirectLine;
-
-                    if($breakAll==true ){
-                        break;
-        
+                        $directLines["DirectLines"][] = [
+                            "StartingPoint" => $startingPoint,
+                            $line,
+                            "EndingPoint" => $isCloseToDestination,
+                            "busStopD" => $this->getNearestBusStop($this->findClosestPointInLine($line, [$userLatitude, $userLongitude]), 1),
+                            "busStopA" => $this->getNearestBusStop($isCloseToDestination, 1),
+                            "tarifs" => $tarifs,
+                            "route" => $route,
+                        ];
+                        $addedLines[] = $lineId;
                     }
                 }
-
-                
-                }
-            }
-            if($breakAll==true ){
-                break;
-
             }
         }
-    
-        return array_merge($directLines, $undirectLines);
     }
+
+    return $directLines;
+}
+
+
+
+
+function searchIndirectLines($userLatitude, $userLongitude, $maxDistance, $arrayOfLignes, $destinationLatitude, $destinationLongitude)
+{
+    $undirectLines = [
+        "IndirectLines" => [],
+    ];
+
+
+
+    $addedLines = [];
+
+    $breakAll = false;
+
+    foreach ($arrayOfLignes as $line) {
+  
+        $lineId = $line[0];
+
+        // Check if the line has already been added
+        if (in_array($lineId, $addedLines)) {
+            continue;
+        }
+
+        $nearestPointFromTheUserLocation = PHP_INT_MAX;
+
+
+        foreach ($line[1] as $point) {
+    
+            $distanceToUser = $this->haversineDistance($userLatitude, $userLongitude, $point[0], $point[1]);
+
+            if($nearestPointFromTheUserLocation> $distanceToUser && $distanceToUser < $maxDistance){
+                $nearestPointFromTheUserLocation = $point;
+            }
+  
+            if ($distanceToUser < $maxDistance) {
+
+
+                $isCloseToDestination = $this->userIsCloseToDestination($line[1], $destinationLatitude, $destinationLongitude);
+
+                if (empty($isCloseToDestination)) {
+                $undirectLine [] = [$line,"StartingPoint"=>$nearestPointFromTheUserLocation,"busStop"=>$this->getNearestBusStop($nearestPointFromTheUserLocation,1)];
+
+          
+                for ($i = 0; $i < 3; $i++) {
+                   
+                    $currentLineToActualLineAndDestination = $this->findNearestLine($i,$line, $arrayOfLignes, $destinationLatitude, $destinationLongitude);
+                    
+              
+                    $point = $this->userIsCloseToDestination($currentLineToActualLineAndDestination[0][1], $destinationLatitude, $destinationLongitude);
+                   
+                    if (empty($point)==false) {
+                    //   break if 3 attemps has passed or we have reaches or destination
+                 
+                       $breakAll = true;
+                       $undirectLine[] = [$currentLineToActualLineAndDestination,"EndingPoint"=>$point];
+                        break;
+                    }
+                    if(empty($point)==true && $i == 2 ){
+                        $breakAll = true;
+                        $undirectLine=[];
+                        break;
+
+
+                    }
+
+
+                    // Set the current line to the result of the previous call
+                    $undirectLine[] = $currentLineToActualLineAndDestination;
+
+                    $line = $currentLineToActualLineAndDestination;
+                }
+
+
+
+                                    // // If undirectLine contains 1 or 4 lines, reset it to an empty array
+                                    if (count($undirectLine) > 4 || count($undirectLine) < 2  ) {
+                                        $undirectLine = [];
+                                    }
+                
+
+                // Reset array keys after removal
+                $undirectLine = array_values($undirectLine);
+
+ 
+                $undirectLines["IndirectLines"][] = $undirectLine;
+
+                if($breakAll==true ){
+                    break;
+    
+                }
+            }
+
+            
+            }
+        }
+        if($breakAll==true ){
+            break;
+
+        }
+    }
+
+    return $undirectLines;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

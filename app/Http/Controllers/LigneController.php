@@ -232,4 +232,7 @@ $content=$jsonGeoJSON;
     // File not found, return a 404 response or handle the error as needed
     return response('File not found', 404);
 }
+
+
+
 }
