@@ -12,10 +12,13 @@ use function Ramsey\Uuid\v1;
 
 use Illuminate\Validation\ValidationException;
 use App\Http\Controllers\API\Operations\Helpers\BusStopFinder;
+use App\Http\Controllers\API\Operations\Helpers\DistanceFinder;
 use Point;
+
 
 class UserTrajetController extends Controller
 {
+   private $geopify ;
 
     private $userLigneController;
 
@@ -23,6 +26,7 @@ class UserTrajetController extends Controller
     {
         // Instantiate UserLigneController when UserTrajetController is created
         $this->userLigneController = new UserLigneController();
+        $this->geopify = new DistanceFinder();
     }
     /**
      * Display a listing of the resource.
@@ -67,7 +71,7 @@ class UserTrajetController extends Controller
         if(isset( $trajet["IndirectLines"][0])){
             $indirectLines = $trajet["IndirectLines"][0];
             if(!empty($indirectLines)){
-                $trajet["IndirectLines"][0] =  $this->filterUndirectLineToGetTheExacteRouteWithoutAnyUselessPoint($indirectLines) ;
+                $trajet["IndirectLines"][0] =  $this->filterUndirectLineToGetTheExacteRouteWithoutAnyUselessPoint($indirectLines,[$departLatitude, $departLongitude]) ;
 
             }
         }
@@ -107,6 +111,17 @@ class UserTrajetController extends Controller
 
 
         }
+
+     
+     
+ 
+    if(!empty($trajet["IndirectLines"])){
+
+     foreach ($trajet["IndirectLines"][0] as $index => $value) {
+        $trajet["IndirectLines"][0][$index]["tarifs"]= Ligne::where("numero" , $value["ligne"][0])->get("tarifs");
+
+     }
+    }
 
 
 
@@ -149,8 +164,8 @@ class UserTrajetController extends Controller
 
 
 
-public function filterUndirectLineToGetTheExacteRouteWithoutAnyUselessPoint($indirectLines) {
-   
+public function filterUndirectLineToGetTheExacteRouteWithoutAnyUselessPoint($indirectLines,$userPoint) {
+ 
 
     $ultimateStartingPoint = $indirectLines[0]["StartingPoint"];
 
@@ -188,10 +203,10 @@ public function filterUndirectLineToGetTheExacteRouteWithoutAnyUselessPoint($ind
         $nearestPoint2 = [];
     
         if (count($indirectLines) == 3) {
-            $nearestPoint1 = $this->findNearestPointOnNextLine($line1, $line2);
-            $nearestPoint2 = $this->findNearestPointOnNextLine($line2, $line3);
+            $nearestPoint1 = $this->findNearestPointOnNextLine($line1, $line2, $ultimateEndingPoint);
+            $nearestPoint2 = $this->findNearestPointOnNextLine($line2, $line3, $ultimateEndingPoint);
         } else {
-            $nearestPoint1 = $this->findNearestPointOnNextLine($line1, $line2);
+            $nearestPoint1 = $this->findNearestPointOnNextLine($line1, $line2, $ultimateEndingPoint);
         }
 
 
@@ -205,6 +220,7 @@ public function filterUndirectLineToGetTheExacteRouteWithoutAnyUselessPoint($ind
 
             $indirectTrajets [] = [
                 "StartingPoint" => $ultimateStartingPoint,
+              "route" =>$this->geopify->getRoute($userPoint,$ultimateStartingPoint) ,
                 "EndingPoint" => $nearestPoint1,
                 "ArretbusD"=>$this->getNearestBusStop( $ultimateStartingPoint,1),
                 "ArretbusA"=>$this->getNearestBusStop($nearestPoint1,1),
@@ -217,9 +233,8 @@ public function filterUndirectLineToGetTheExacteRouteWithoutAnyUselessPoint($ind
             $endingPoint =  $nearestPoint2;
 
                 if(count($indirectLines)==2){
-        $endingPoint = $indirectLines[1]["EndingPoint"];
-
-    }
+                 $endingPoint = $indirectLines[1]["EndingPoint"];
+                 }
 
             //le point leplus proche de nearestPoint1 par rapport au ligne suivant
 
@@ -228,6 +243,8 @@ public function filterUndirectLineToGetTheExacteRouteWithoutAnyUselessPoint($ind
        
             $indirectTrajets [] = [
                 "StartingPoint" => $departPoint,
+              "route" =>$this->geopify->getRoute($nearestPoint1, $departPoint) ,
+
                 "EndingPoint" =>  $endingPoint,
                 "ArretbusD"=>$this->getNearestBusStop($departPoint,1),
                 "ArretbusA"=>$this->getNearestBusStop($endingPoint,1),
@@ -243,6 +260,8 @@ public function filterUndirectLineToGetTheExacteRouteWithoutAnyUselessPoint($ind
 
             $indirectTrajets [] = [
                 "StartingPoint" =>  $departPoint,
+            //   "route" =>$this->geopify->getRoute($endingPoint, $departPoint) ,
+
                 "EndingPoint" => $ultimateEndingPoint,
                 "ArretbusD"=>$this->getNearestBusStop( $departPoint,1),
                 "ArretbusA"=>$this->getNearestBusStop($ultimateEndingPoint,1),
@@ -258,25 +277,71 @@ public function filterUndirectLineToGetTheExacteRouteWithoutAnyUselessPoint($ind
     
     }
     
+    public function distanceToLineSegment($x, $y, $x1, $y1, $x2, $y2) {
+        $A = $x - $x1;
+        $B = $y - $y1;
+        $C = $x2 - $x1;
+        $D = $y2 - $y1;
+    
+        $dot = ($A * $C) + ($B * $D);
+        $lenSq = ($C * $C) + ($D * $D);
+    
+        $param = $lenSq > 0 ? $dot / $lenSq : -1;
+    
+        $xx = 0;
+        $yy = 0;
+    
+        if ($param < 0) {
+            $xx = $x1;
+            $yy = $y1;
+        } elseif ($param > 1) {
+            $xx = $x2;
+            $yy = $y2;
+        } else {
+            $xx = $x1 + $param * $C;
+            $yy = $y1 + $param * $D;
+        }
+    
+        $dx = $x - $xx;
+        $dy = $y - $yy;
+    
+        return sqrt($dx * $dx + $dy * $dy);
+    }
+    
 
+    
 
-    public function findNearestPointOnNextLine($line, $nextLine) {
-        $minDistance = PHP_INT_MAX;
+    public function findNearestPointOnNextLine($line, $nextLine, $destination) {
+        $minDistanceToLine = PHP_INT_MAX;
+        $minDistanceToDestination = PHP_INT_MAX;
         $nearestPoint = null;
     
         foreach ($line[1] as $point) {
-            foreach ($nextLine[1] as $nextPoint) {
-                $distance = $this->haversineDistance($point[0], $point[1], $nextPoint[0], $nextPoint[1]);
+            // Calculate distance to the line connecting each point to the destination
+            $lineSegment = array($point, $destination);
+            $distanceToLine = $this->distanceToLineSegment($point[0], $point[1], $destination[0], $destination[1], $lineSegment[1][0], $lineSegment[1][1]);
     
-                if ($distance < $minDistance) {
-                    $minDistance = $distance;
-                    $nearestPoint = $point;
+            // Calculate distance to the next line
+            $minDistanceToNextLine = PHP_INT_MAX;
+            foreach ($nextLine[1] as $nextPoint) {
+                $distanceToNextPoint = $this->haversineDistance($point[0], $point[1], $nextPoint[0], $nextPoint[1]);
+                if ($distanceToNextPoint < $minDistanceToNextLine) {
+                    $minDistanceToNextLine = $distanceToNextPoint;
                 }
+            }
+    
+            // Combine both distances and find the minimum
+            $combinedDistance = $distanceToLine + $minDistanceToNextLine;
+            if ($combinedDistance < $minDistanceToLine + $minDistanceToDestination) {
+                $minDistanceToLine = $distanceToLine;
+                $minDistanceToDestination = $minDistanceToNextLine;
+                $nearestPoint = $point;
             }
         }
     
         return $nearestPoint;
     }
+    
     
 
 
@@ -377,10 +442,13 @@ public function filterUndirectLineToGetTheExacteRouteWithoutAnyUselessPoint($ind
                         if (!in_array($lineId, $addedLines)) {
 
 
-
+                            $startingPoint = $this->findClosestPointInLine($line, [$userLatitude, $userLongitude]);
                             $tarifs = Ligne::where("numero" , $line[0])->get("tarifs");
+                            $userLocation  = [$userLatitude, $userLongitude];
+                            $route = $this->geopify->getRoute($startingPoint,$userLocation);
+                           
                           
-                            $directLines["DirectLines"][] = ["StartingPoint"=>$this->findClosestPointInLine($line, [$userLatitude, $userLongitude]),$line,"EndingPoint"=>$isCloseToDestination,"busStopD"=>$this->getNearestBusStop($this->findClosestPointInLine($line, [$userLatitude, $userLongitude]),1),"busStopA"=>$this->getNearestBusStop($isCloseToDestination,1),"tarifs"=>$tarifs];
+                            $directLines["DirectLines"][] = ["StartingPoint"=>$startingPoint,$line,"EndingPoint"=>$isCloseToDestination,"busStopD"=>$this->getNearestBusStop($this->findClosestPointInLine($line, [$userLatitude, $userLongitude]),1),"busStopA"=>$this->getNearestBusStop($isCloseToDestination,1),"tarifs"=>$tarifs,"route"=> $route];
                             $addedLines[] = $lineId;
                         }
                     } else {
