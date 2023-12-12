@@ -15,7 +15,9 @@ class IndirectTrajetController extends Controller
     public function index()
     {
         // Retrieve and return a list of all IndirectTrajets
-        $indirectTrajets = IndirectTrajet::all();
+        $userId=  auth()->user()->id;
+
+        $indirectTrajets = IndirectTrajet::where('user_id', $userId)->get();
         return response()->json(['indirectTrajets' => $indirectTrajets]);
     }
 
@@ -38,10 +40,12 @@ class IndirectTrajetController extends Controller
             $validatedData = $request->validate([
                 'depart' => 'required|string',
                 'arrive' => 'required|string',
-                'lignes' => 'required|json',
+                'lignes' => 'required|string',
                 'distance' => 'required|numeric',
             ]);
     
+            $validatedData['user_id'] = auth()->user()->id;
+
             // Create a new IndirectTrajet
             $indirectTrajet = IndirectTrajet::create($validatedData);
     

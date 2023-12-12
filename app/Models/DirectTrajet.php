@@ -21,11 +21,18 @@ class DirectTrajet extends Model
         'distance',
         'frequence',
         'ligne_id',
+        'user_id',
+        'numero'
     ];
 
 
     public function ligne()
     {
         return $this->belongsTo(Ligne::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 }

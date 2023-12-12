@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\DirectTrajet;
+use App\Models\IndirectTrajet;
+use App\Models\Ligne;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Validation\ValidationException;
@@ -14,10 +16,13 @@ class DirectTrajetController extends Controller
      */
     public function index()
     {
-        $directTrajets = DirectTrajet::all();
-        return response()->json(['directTrajets' => $directTrajets]);
+        $userId=  auth()->user()->id;
+        $directTrajets = DirectTrajet::where('user_id', $userId)->get();
+        $inDirectTrajets = IndirectTrajet::where('user_id', $userId)->get();
+    
+        return response(['directTrajets' => $directTrajets,'inDirectTrajets' => $inDirectTrajets]);
     }
-
+    
     /**
      * Store a newly created resource in storage.
      */
@@ -36,6 +41,11 @@ class DirectTrajetController extends Controller
                  'frequence' => 'required|integer',
                  'ligne_id' => 'required|exists:lignes,id',
                 ]);
+
+                $validatedData['user_id'] = auth()->user()->id;
+               $ligne =  Ligne::find($validatedData['ligne_id']);
+            $validatedData['numero'] =   $ligne->numero;
+            
      
              $directTrajet = DirectTrajet::create($validatedData);
      

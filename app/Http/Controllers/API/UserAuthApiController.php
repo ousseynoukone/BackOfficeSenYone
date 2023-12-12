@@ -41,7 +41,7 @@ class UserAuthApiController extends Controller
             $token = $user->createToken('auth_token')->plainTextToken;
 
 
-            return response()->json(['token' => $token ,'username'=> $user->name ,'email'=> $user->email]);
+            return response()->json(['token' => $token ,'username'=> $user->name ,'email'=> $user->email,'user_id'=>$user->id]);
             
         }else{
             return response("Email et/ou Mots de passe incorrecte", 403);

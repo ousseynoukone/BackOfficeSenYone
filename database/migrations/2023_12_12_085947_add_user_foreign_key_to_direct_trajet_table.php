@@ -11,14 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('trajet_indirects', function (Blueprint $table) {
-            $table->id();
-            $table->string("depart");
-            $table->string("arrive");
-            $table->string('lignes'); 
-            $table->double('distance');
+        Schema::table('trajet_directs', function (Blueprint $table) {
+            $table->foreignId('user_id')->constrained('users'); 
 
-            $table->timestamps();
         });
     }
 
@@ -27,6 +22,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('trajet_indirects');
+        Schema::table('direct_trajet', function (Blueprint $table) {
+            //
+        });
     }
 };
