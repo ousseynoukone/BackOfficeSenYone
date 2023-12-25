@@ -97,9 +97,10 @@ class IndirectTrajetController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(IndirectTrajet $indirectTrajet)
+    public function destroy(String $id)
     {
         // Delete the IndirectTrajet
+        $indirectTrajet=IndirectTrajet::find($id);
         $indirectTrajet->delete();
 
         // Return a JSON response with a success message

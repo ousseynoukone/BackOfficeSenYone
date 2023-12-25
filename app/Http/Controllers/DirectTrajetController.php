@@ -31,15 +31,18 @@ class DirectTrajetController extends Controller
      {
          try {
              $validatedData = $request->validate([
-                 'depart' => 'required|string',
-                 'arrive' => 'required|string',
+                'tarifs' => 'required|string',
+                'depart' => 'required|string',
+                'arrive' => 'required|string',
                  'departLat' => 'required|numeric', // assuming double values are accepted as numeric
                  'departLon' => 'required|numeric',
                  'arriveLat' => 'required|numeric',
                  'arriveLon' => 'required|numeric',
                  'distance' => 'required|numeric',
                  'frequence' => 'required|integer',
-                 'ligne_id' => 'required|exists:lignes,id',
+                 'ligne' => 'required',
+                 'ligne_id' => 'required',
+                 'routeInfo' => 'required',
                 ]);
 
                 $validatedData['user_id'] = auth()->user()->id;
@@ -86,10 +89,11 @@ class DirectTrajetController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(DirectTrajet $directTrajet)
+    public function destroy(String $id)
     {
-        $directTrajet->delete();
 
+        $directTrajet = DirectTrajet::find($id);
+        $directTrajet->delete();
         return response()->json(['message' => 'DirectTrajet deleted successfully']);
     }
 }

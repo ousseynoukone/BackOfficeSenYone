@@ -46,11 +46,25 @@ class BusStopFinder {
             $properties = $data['features'][0]['properties'];
             $geometry = $data['features'][0]['geometry']['coordinates'];
 
+
+    
+
+            $street ="Adresse inconnu";
+
             // Extracted information
             $coordinates = ['lon' => $geometry[0], 'lat' => $geometry[1]];
             $distance = $properties['distance'];
             // $operator = $properties['datasource']['raw']['operator'];
-            $street = $properties['street'];
+            if( isset($properties['street'])){
+                $street = $properties['street'];
+
+            }else if(isset($properties['road'])){
+                $street = $properties['road'];
+
+            }else{
+                $street = $properties['suburb'];
+
+            }
 
             // Return the result
             return [
@@ -65,5 +79,72 @@ class BusStopFinder {
             return null;
         }
     }
+
+
+
+
+
+    function getStdreetName($point, $apiKey="AIzaSyDuPEC5wc0dXX97ziGAo9rA-TKRsYGI4nk") {
+        $latitude = $point[0];
+        $longitude = $point[1];
+        $url = "https://maps.googleapis.com/maps/api/geocode/json?latlng={$latitude},{$longitude}&key={$apiKey}";
+    
+        // Make a GET request to the Google Maps Geocoding API
+        $response = file_get_contents($url);
+    
+        // Decode the JSON response
+        $data = json_decode($response, true);
+    
+        if (isset($data["results"][1]["formatted_address"])) {
+            return $data["results"][1]["formatted_address"];
+        } elseif (isset($data["results"][2]["formatted_address"])) {
+            // Fallback 1: Build the address from address components
+            return $data["results"][2]["formatted_address"];
+
+      
+        }else if(isset($data["results"][3]["formatted_address"])){
+            return $data["results"][3]["formatted_address"];
+
+        }
+    
+        // Fallback 2: Use a generic message
+        return "Lieu inconnu";
+    }
+
+
+
+
+
+
+
+
+
+
+
+    function getStreetName($point) {
+        $latitude = $point[0];
+        $longitude = $point[1];
+        $url = "https://api.geoapify.com/v1/geocode/reverse?lat={$latitude}&lon={$longitude}&type=amenity&lang=fr&limit=1&format=json&apiKey={$this->apiKey}";
+    
+        // Make a GET request to the Geoapify API
+        $response = file_get_contents($url);
+    
+        // Decode the JSON response
+        $data = json_decode($response, true);
+    
+        if (isset($data['results'][0]['street'])) {
+            return $data['results'][0]['street'];
+        } else if(isset($data['results'][0]['address_line2'])) {
+            // Return null if road information is not found
+            return $data['results'][0]['address_line2'];
+        }else{
+            return "Lieu introuvable";
+        }
+    }
 }
+
+
+
+
+
 ?>

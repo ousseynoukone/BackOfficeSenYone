@@ -20,16 +20,21 @@ class DirectTrajet extends Model
         'arriveLon',
         'distance',
         'frequence',
-        'ligne_id',
+        'tarifs',
+        'ligne',
         'user_id',
-        'numero'
+        'numero',
+        'routeInfo',
+
+    ];
+
+    protected $casts = [
+        'routeInfo' => 'json',
+        'ligne' => 'json',
+
     ];
 
 
-    public function ligne()
-    {
-        return $this->belongsTo(Ligne::class);
-    }
 
     public function user()
     {

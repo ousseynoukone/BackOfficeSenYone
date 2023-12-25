@@ -21,12 +21,15 @@ class UserTrajetController extends Controller
    private $geopify ;
 
     private $userLigneController;
+   private $busStopFinder ;
 
     public function __construct()
     {
         // Instantiate UserLigneController when UserTrajetController is created
         $this->userLigneController = new UserLigneController();
         $this->geopify = new DistanceFinder();
+        $this->busStopFinder = new BusStopFinder();
+
     }
     /**
      * Display a listing of the resource.
@@ -220,9 +223,11 @@ public function filterUndirectLineToGetTheExacteRouteWithoutAnyUselessPoint($ind
 
             $indirectTrajets [] = [
                 "StartingPoint" => $ultimateStartingPoint,
+                "StartingPointName" => $this->busStopFinder->getStreetName($ultimateStartingPoint) ,
               "route" =>$this->geopify->getRoute($userPoint,$ultimateStartingPoint) ,
-                "EndingPoint" => $nearestPoint1,
-                "ArretbusD"=>$this->getNearestBusStop( $ultimateStartingPoint,1),
+              "EndingPoint" => $nearestPoint1,
+              "EndingPointName" => $this->busStopFinder->getStreetName($nearestPoint1) ,
+              "ArretbusD"=>$this->getNearestBusStop( $ultimateStartingPoint,1),
                 "ArretbusA"=>$this->getNearestBusStop($nearestPoint1,1),
                 "ligne"=>$line1
             ];
@@ -244,6 +249,8 @@ public function filterUndirectLineToGetTheExacteRouteWithoutAnyUselessPoint($ind
             $indirectTrajets [] = [
                 "StartingPoint" => $departPoint,
               "route" =>$this->geopify->getRoute($nearestPoint1, $departPoint) ,
+              "StartingPointName" => $this->busStopFinder->getStreetName($departPoint) ,
+              "EndingPointName" => $this->busStopFinder->getStreetName($endingPoint) ,
 
                 "EndingPoint" =>  $endingPoint,
                 "ArretbusD"=>$this->getNearestBusStop($departPoint,1),
@@ -261,6 +268,8 @@ public function filterUndirectLineToGetTheExacteRouteWithoutAnyUselessPoint($ind
             $indirectTrajets [] = [
                 "StartingPoint" =>  $departPoint,
             //   "route" =>$this->geopify->getRoute($endingPoint, $departPoint) ,
+            "StartingPointName" => $this->busStopFinder->getStreetName($departPoint) ,
+            "EndingPointName" => $this->busStopFinder->getStreetName($ultimateEndingPoint) ,
 
                 "EndingPoint" => $ultimateEndingPoint,
                 "ArretbusD"=>$this->getNearestBusStop( $departPoint,1),
@@ -481,6 +490,9 @@ function searchDirectLines($userLatitude, $userLongitude, $maxDistance, $arrayOf
                             "busStopA" => $this->getNearestBusStop($isCloseToDestination, 1),
                             "tarifs" => $tarifs,
                             "route" => $route,
+                            "EndingPointName" => $this->busStopFinder->getStreetName($isCloseToDestination) ,
+                            "StartingPointName" => $this->busStopFinder->getStreetName($startingPoint) ,
+
                         ];
                         $addedLines[] = $lineId;
                     }
@@ -813,8 +825,7 @@ public function findClosestPointInLine($line, $targetPoint)
 
         $latitude = $point[0];
         $longitude = $point[1];
-       $busStopFinder = new BusStopFinder();
-       $result = $busStopFinder->getNearestBusStop($latitude, $longitude,$limit);
+       $result = $this->busStopFinder->getNearestBusStop($latitude, $longitude,$limit);
 
        // Check if a bus stop was found
        if ($result !== null) {

@@ -14,14 +14,17 @@ return new class extends Migration
         Schema::create('trajet_directs', function (Blueprint $table) {
             $table->id();
             $table->string("depart");
+            $table->string('tarifs', 1000);
+
             $table->string("arrive");
             $table->double('departLat'); 
             $table->double('departLon'); 
-            $table->json('arriveLat'); 
-            $table->json('arriveLon'); 
+            $table->double('arriveLat'); 
+            $table->double('arriveLon'); 
+            $table->json('routeInfo'); 
+            $table->json('ligne'); 
             $table->double('distance');
             $table->integer('frequence');
-            $table->foreignId('ligne_id')->constrained('lignes'); 
             $table->timestamps();
         });
     }
