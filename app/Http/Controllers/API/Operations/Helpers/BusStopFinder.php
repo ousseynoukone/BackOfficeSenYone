@@ -5,8 +5,10 @@ namespace App\Http\Controllers\API\Operations\Helpers;
 class BusStopFinder {
     private $apiKey; 
 
-    public function __construct() {
-        $this->apiKey = "2cdfb6f02cee478e8fd1ba294681cf9c";
+    public function __construct() 
+    {
+        //GEOPIFY API KEY
+        $this->apiKey = "";
     }
 
     public function getNearestBusStop($latitude, $longitude,$limit) {
@@ -98,8 +100,8 @@ class BusStopFinder {
 
 
 
-
-    function getStdreetName($point, $apiKey="AIzaSyDuPEC5wc0dXX97ziGAo9rA-TKRsYGI4nk") {
+                                    //google maps api key
+    function getStdreetName($point, $apiKey="") {
         $latitude = $point[0];
         $longitude = $point[1];
         $url = "https://maps.googleapis.com/maps/api/geocode/json?latlng={$latitude},{$longitude}&key={$apiKey}";
