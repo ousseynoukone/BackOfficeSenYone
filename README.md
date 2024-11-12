@@ -29,7 +29,7 @@ Le back-office permet de gérer efficacement les données et fonctionnalités de
   Utilisation de tokens pour une authentification sécurisée, avec renouvellement automatique pour améliorer l’expérience utilisateur.
 
 - **Interface d’Administration**  
-  Interface ergonomique construite pour faciliter l'accès aux données et aux statistiques de l'application.
+  Interface ergonomique construite pour faciliter l'accès aux données  de l'application.
   
 DEMO:
 https://github.com/ousseynoukone/BackOfficeSenYone/assets/79483988/61def63b-e889-4044-9447-9945c400a384
