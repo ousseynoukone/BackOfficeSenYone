@@ -17,8 +17,6 @@ Le back-office permet de gérer efficacement les données et fonctionnalités de
   Algorithme optimisé qui élabore les trajets les plus rapides et efficaces pour les utilisateurs en fonction des horaires, des arrêts et des correspondances disponibles.
 
 
-- **Suivi des Statistiques**  
-  Tableau de bord pour visualiser les données de fréquentation, les trajets les plus populaires et l'engagement des utilisateurs.
 
 ## Technologies Utilisées
 
